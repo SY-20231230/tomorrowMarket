@@ -106,7 +106,7 @@ function LoginPage() {
                 <label htmlFor="keep">로그인 상태 유지</label>
               </div>
               <div className="footer-links">
-                <span className="footer-link">비밀번호 찾기</span>
+                <span className="footer-link" onClick={() => navigate("/forgot-password")}>비밀번호 찾기</span>
                 <span style={{ color: "#334155" }}>|</span>
                 <span className="footer-link" onClick={() => navigate("/signup")}>회원가입</span>
               </div>
