@@ -4,6 +4,7 @@ import Layout from "../components/layout/Layout";
 import LandingPage from "../pages/LandingPage";
 import LoginPage from "../pages/LoginPage";
 import SignupPage from "../pages/SignupPage";
+import ForgotPasswordPage from "../pages/ForgotPasswordPage"; // 추가
 import HomePage from "../pages/HomePage";
 import StockDetailPage from "../pages/StockDetailPage";
 import SectorPage from "../pages/SectorPage";
@@ -21,6 +22,7 @@ function AppRouter() {
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/home" element={<HomePage />} />
           <Route path="/stock/:code" element={<StockDetailPage />} />
           <Route path="/sector" element={<SectorPage />} />
