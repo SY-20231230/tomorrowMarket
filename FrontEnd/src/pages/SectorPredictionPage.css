@@ -1,0 +1,141 @@
+/* SectorPredictionPage 전용 스타일 */
+
+.prediction-page {
+  animation: fadeIn 0.6s ease;
+  color: var(--text-main);
+}
+
+/* 상단 리스트로 돌아가기 버튼 */
+.back-btn {
+  background: rgba(0, 255, 136, 0.1);
+  border: 1px solid #00ff88;
+  color: #00ff88;
+  padding: 10px 20px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 950;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: 0.2s;
+  margin-bottom: 32px;
+}
+
+.back-btn:hover {
+  background: rgba(0, 255, 136, 0.2);
+  box-shadow: 0 0 15px rgba(0, 255, 136, 0.2);
+}
+
+/* 헤더 및 모델 선택기 영역 */
+.prediction-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 42px;
+}
+
+.model-selector-wrapper {
+  background: rgba(15, 23, 42, 0.8);
+  padding: 6px;
+  border-radius: 16px;
+  display: flex;
+  border: 2px solid rgba(0, 255, 136, 0.2);
+}
+
+.model-tab {
+  padding: 12px 28px;
+  border-radius: 12px;
+  border: none;
+  font-size: 15px;
+  font-weight: 950;
+  cursor: pointer;
+  transition: 0.3s;
+  background: transparent;
+  color: var(--text-soft);
+}
+
+.model-tab.active {
+  background: #00ff88;
+  color: #000;
+  box-shadow: 0 4px 15px rgba(0, 255, 136, 0.3);
+}
+
+/* 메인 그래프 카드 */
+.graph-card-content {
+  padding: 40px;
+  min-height: 550px;
+  background: rgba(15, 23, 42, 0.6);
+}
+
+.graph-card-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 40px;
+}
+
+.graph-title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 950;
+  color: #fff;
+}
+
+.graph-subtitle {
+  color: #00ff88;
+  font-size: 14px;
+  font-weight: 800;
+  margin-top: 8px;
+}
+
+.confidence-label {
+  font-size: 14px;
+  color: var(--text-soft);
+  font-weight: 800;
+}
+
+.confidence-value {
+  font-size: 28px;
+  font-weight: 950;
+  color: #00ff88;
+}
+
+/* 하단 분석 그리드 */
+.analysis-grid {
+  margin-top: 24px;
+  display: grid;
+  grid-templateColumns: 1fr 1fr;
+  gap: 24px;
+}
+
+.analysis-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 950;
+  color: #00ff88;
+  margin-bottom: 16px;
+}
+
+.analysis-text {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #cbd5e1;
+  line-height: 1.8;
+}
+
+.caution-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 950;
+  color: var(--text-soft);
+  margin-bottom: 16px;
+}
+
+.caution-text {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: rgba(148, 163, 184, 0.6);
+  line-height: 1.8;
+}

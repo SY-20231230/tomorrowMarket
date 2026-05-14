@@ -1,0 +1,17 @@
+.market-summary-grid {
+  display: grid;
+  grid-template-columns: 1.25fr 1.25fr 0.9fr 0.9fr;
+  gap: 18px;
+}
+
+@media (max-width: 1180px) {
+  .market-summary-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 860px) {
+  .market-summary-grid {
+    grid-template-columns: 1fr;
+  }
+}

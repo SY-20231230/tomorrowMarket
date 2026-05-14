@@ -1,0 +1,23 @@
+.flex {
+  display: flex;
+}
+
+.grid {
+  display: grid;
+}
+
+.gap-20 {
+  gap: 20px;
+}
+
+.mt-20 {
+  margin-top: 20px;
+}
+
+.mt-30 {
+  margin-top: 30px;
+}
+
+.mt-40 {
+  margin-top: 40px;
+}

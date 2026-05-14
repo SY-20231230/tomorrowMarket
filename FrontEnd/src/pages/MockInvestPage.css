@@ -1,0 +1,105 @@
+/* 모의투자 페이지 전용 스타일 */
+
+.invest-form-container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* 1단계: 시장 선택 탭 */
+.market-selection-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.market-mini-tab {
+  flex: 1;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.03);
+  color: #94a3b8;
+  font-weight: 900;
+  font-size: 14px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.market-mini-tab.active {
+  background: var(--cyan);
+  color: #000;
+  border-color: var(--cyan);
+  box-shadow: 0 0 15px rgba(34, 211, 238, 0.3);
+}
+
+/* 주문 폼 레이아웃 */
+.order-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 16px;
+  align-items: end;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.input-label {
+  font-size: 12px;
+  font-weight: 900;
+  color: #94a3b8;
+  margin-left: 4px;
+}
+
+.invest-input {
+  background: rgba(15, 23, 42, 0.8) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 14px !important;
+  padding: 14px 20px !important;
+  color: #fff !important; /* 글씨 선명하게 */
+  font-weight: 800 !important;
+  outline: none;
+  width: 100%;
+  transition: 0.2s;
+}
+
+.invest-input:focus {
+  border-color: var(--cyan);
+  box-shadow: 0 0 10px rgba(34, 211, 238, 0.1);
+}
+
+/* 매수/매도 버튼 리뉴얼 */
+.btn-order {
+  padding: 16px !important;
+  border-radius: 14px !important;
+  font-size: 15px !important;
+  font-weight: 950 !important;
+  border: none !important;
+  cursor: pointer;
+  transition: 0.2s;
+  color: #fff !important; /* 글씨 무조건 흰색 */
+  text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+.btn-buy {
+  background: #ef4444 !important; /* 선명한 레드 */
+  box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+}
+
+.btn-buy:hover {
+  background: #dc2626 !important;
+  transform: translateY(-2px);
+}
+
+.btn-sell {
+  background: #3b82f6 !important; /* 선명한 블루 */
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+}
+
+.btn-sell:hover {
+  background: #2563eb !important;
+  transform: translateY(-2px);
+}

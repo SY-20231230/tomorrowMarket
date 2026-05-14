@@ -1,0 +1,123 @@
+.market-index-card {
+  background: rgba(255, 255, 255, 0.02); /* 배경에 녹아들도록 아주 낮은 투명도 사용 */
+  border: 1px solid rgba(255, 255, 255, 0.05); /* 실선보다는 은은한 경계선 */
+  backdrop-filter: blur(12px); /* 배경과 섞이는 글래스 효과 */
+  border-radius: 24px;
+  padding: 28px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.4s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.market-index-card:hover {
+  transform: translateY(-5px);
+  background: rgba(255, 255, 255, 0.04); /* 호버 시에만 살짝 명도 증가 */
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.market-index-name {
+  font-size: 14px;
+  font-weight: 900;
+  color: #fff;
+}
+
+.status-pill {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 900;
+  background: rgba(34, 211, 238, 0.1);
+  color: #22d3ee;
+  border: 1px solid rgba(34, 211, 238, 0.3);
+}
+
+.status-pill.positive {
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.status-pill.negative {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.market-index-value {
+  font-size: 32px;
+  font-weight: 950;
+  margin-bottom: 4px;
+  color: white;
+}
+
+.market-rate {
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.market-rate.positive { color: #10b981; }
+.market-rate.negative { color: #ef4444; }
+
+.sparkline {
+  width: 100%;
+  height: 60px;
+  margin-top: 20px;
+  opacity: 0.5;
+}
+
+.sparkline .area {
+  fill: url(#grad1);
+}
+
+/* 카드 내 버튼 스타일 */
+.card-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 24px;
+  z-index: 10;
+}
+
+.card-actions.single {
+  grid-template-columns: 1fr;
+}
+
+.mini-btn {
+  padding: 10px;
+  border-radius: 10px;
+  border: none;
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+  transition: 0.2s;
+  color: white;
+}
+
+.mini-btn-past {
+  background: rgba(34, 211, 238, 0.2);
+  border: 1px solid rgba(34, 211, 238, 0.3);
+}
+
+.mini-btn-past:hover {
+  background: #22d3ee;
+  color: black;
+}
+
+.mini-btn-ai {
+  background: rgba(16, 185, 129, 0.2);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.mini-btn-ai:hover {
+  background: #10b981;
+  color: white;
+}
