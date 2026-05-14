@@ -1,0 +1,15 @@
+.card {
+  background: linear-gradient(145deg, rgba(15, 23, 42, 0.86), rgba(2, 6, 23, 0.76));
+  border: 1px solid var(--border);
+  border-radius: 26px;
+  padding: 32px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.4), 0 0 40px rgba(34, 211, 238, 0.04);
+  backdrop-filter: blur(24px);
+  transition: 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(34, 211, 238, 0.24);
+  box-shadow: 0 32px 80px rgba(0, 0, 0, 0.5), 0 0 50px rgba(34, 211, 238, 0.08);
+}

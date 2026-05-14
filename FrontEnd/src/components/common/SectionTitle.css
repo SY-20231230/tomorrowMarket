@@ -1,0 +1,18 @@
+.section-title {
+  margin-bottom: 24px;
+}
+
+.section-title h2 {
+  margin: 0;
+  font-size: 27px;
+  letter-spacing: -1px;
+  color: var(--text-main);
+  font-weight: 950;
+}
+
+.section-title p {
+  margin-top: 7px;
+  color: var(--text-sub);
+  font-weight: 600;
+  font-size: 14px;
+}

@@ -1,0 +1,165 @@
+.my-page-container {
+  animation: fadeIn 0.5s ease;
+}
+
+.section-group {
+  margin-top: 32px;
+}
+
+.section-header-title {
+  font-size: 22px;
+  font-weight: 950;
+  color: #fff;
+  margin: 0;
+}
+
+/* 1:1 그리드 레이아웃 (높이 일치화) */
+.dashboard-dual-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  margin-top: 32px;
+}
+
+/* 그리드 내의 섹션을 flex로 만들어 카드가 꽉 차게 함 */
+.dashboard-dual-grid > section {
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboard-dual-grid > section > div:last-child {
+  flex-grow: 1;
+}
+
+/* 카드 공통 스타일 보정 */
+.dashboard-dual-grid .card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  min-height: 320px; /* 최소 높이 보장 */
+}
+
+/* 페이지네이션 디자인 */
+.pagination-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin-top: auto; /* 하단 밀착 */
+  padding-top: 20px;
+}
+
+.pg-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  color: #94a3b8;
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: 0.2s;
+  padding: 0;
+}
+
+.pg-btn.active {
+  background: var(--cyan);
+  color: #000;
+  box-shadow: 0 0 15px rgba(34, 211, 238, 0.5);
+  border-color: var(--cyan);
+}
+
+.pg-arrow {
+  background: transparent;
+  border: none;
+  font-size: 10px;
+  color: var(--cyan);
+  cursor: pointer;
+  font-weight: 950;
+}
+
+.pg-arrow:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* 리스트 및 항목 스타일 */
+.history-list {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.history-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px; /* 패딩 동일화 */
+  height: 68px; /* 항목 높이 고정으로 균형 맞춤 */
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  transition: 0.2s;
+  cursor: pointer;
+}
+
+.history-item:last-child {
+  border-bottom: none;
+}
+
+.history-item:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.history-info-name {
+  font-size: 16px;
+  font-weight: 950;
+  color: #fff;
+  margin: 0;
+}
+
+.history-info-date {
+  font-size: 12px;
+  color: var(--text-soft);
+  font-weight: 800;
+}
+
+.history-badge {
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 950;
+  min-width: 80px;
+  text-align: center;
+}
+
+.history-badge.positive {
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.history-badge.negative {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+/* 관심 분야 태그 */
+.interest-tag-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.interest-tag {
+  background: rgba(34, 211, 238, 0.05);
+  color: var(--cyan);
+  padding: 10px 20px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 900;
+  border: 1px solid rgba(34, 211, 238, 0.2);
+}
