@@ -10,8 +10,8 @@ function Sidebar() {
     { name: "분야 주식 조회", path: "/sector", icon: "📊" },
     { name: "종합지수 조회", path: "/market", icon: "📈" },
     { name: "뉴스 모음", path: "/news", icon: "📰" },
-    { name: "마이페이지", path: "/mypage", icon: "👤" },
     { name: "모의투자", path: "/mock-invest", icon: "💰" },
+    { name: "마이페이지", path: "/mypage", icon: "👤" },
     { name: "관리자", path: "/admin", icon: "⚙️" },
   ];
 
