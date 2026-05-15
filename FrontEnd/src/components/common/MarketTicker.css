@@ -1,0 +1,70 @@
+/* SubHeader Ticker Area (Card Bar Shape) */
+.market-ticker-container {
+  background: rgba(30, 41, 59, 0.4);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 10px 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 10px;
+  margin-bottom: 32px;
+  border-radius: 50px; /* 둥근 카드 바 형태 */
+  overflow: hidden; /* 넘치는 부분 숨김 */
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.ticker-label-container {
+  background: rgba(30, 41, 59, 1); /* 불투명 배경으로 뒤쪽 글자 차단 */
+  padding-right: 15px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  border-radius: 50px 0 0 50px;
+}
+
+.ticker-label {
+  font-size: 11px;
+  font-weight: 950;
+  color: #00e5ff; /* Cyan color variable fallback */
+  letter-spacing: 1px;
+  white-space: nowrap;
+  background: rgba(15, 23, 42, 1); /* 레이블 배경도 완전 불투명하게 */
+  padding: 4px 12px;
+  border-radius: 20px;
+}
+
+.ticker-wrapper {
+  flex: 1;
+  overflow: hidden; /* 이 영역 안에서만 글자가 보이도록 제한 */
+  display: flex;
+  align-items: center;
+}
+
+.ticker-items {
+  display: flex;
+  gap: 50px;
+  animation: ticker-scroll 35s linear infinite;
+  white-space: nowrap;
+  padding-left: 20px; /* 시작 시 약간의 여백 */
+}
+
+@keyframes ticker-scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); } /* 전체 너비의 절반(복제본 시작점)까지 이동 */
+}
+
+.ticker-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.ticker-name { color: #94a3b8; }
+.ticker-value { color: #fff; }
+.ticker-change.up { color: #10b981; }
+.ticker-change.down { color: #ef4444; }

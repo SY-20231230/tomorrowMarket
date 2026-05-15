@@ -78,7 +78,7 @@
 /* --- 조회 버튼 그룹 --- */
 .action-button-group {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr; /* 3개 버튼을 한 줄로 */
   gap: 16px;
   margin-top: 24px;
 }
@@ -87,7 +87,7 @@
   padding: 18px;
   border-radius: 16px;
   border: none;
-  font-size: 16px;
+  font-size: 15px; /* 글씨 크기 살짝 조정 */
   font-weight: 950;
   cursor: pointer;
   transition: 0.3s;
@@ -117,6 +117,17 @@
 .btn-ai:hover {
   transform: translateY(-3px);
   box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
+}
+
+.btn-news-analysis {
+  background: linear-gradient(135deg, #3b82f6, #06b6d4);
+  color: white;
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+}
+
+.btn-news-analysis:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
 }
 
 /* --- 결과 차트 영역 --- */

@@ -12,21 +12,6 @@ function LandingPage() {
   };
   return (
     <div className="home-page"> {/* Use home-page class for global layout */}
-      <div className="ticker">
-        <div className="ticker-label">MARKET TICKER</div>
-        <div className="ticker-track">
-          <span>KOSPI <b className="up">+1.12%</b></span>
-          <span>KOSDAQ <b className="up">+0.76%</b></span>
-          <span>USD/KRW <b className="down">-0.24%</b></span>
-          <span>삼성전자 <b className="up">+2.31%</b></span>
-          <span>SK하이닉스 <b className="up">+3.18%</b></span>
-          {/* Repeat for animation */}
-          <span>KOSPI <b className="up">+1.12%</b></span>
-          <span>KOSDAQ <b className="up">+0.76%</b></span>
-          <span>USD/KRW <b className="down">-0.24%</b></span>
-        </div>
-      </div>
-
       <section className="hero">
         <div className="hero-card">
           <div className="hero-badge">⚡ LIVE AI MARKET SIGNAL</div>
