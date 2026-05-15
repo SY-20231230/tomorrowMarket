@@ -28,7 +28,8 @@ function SectorPage() {
           display: "grid",
           gridTemplateColumns: "repeat(auto-fit, minmax(400px, 1fr))",
           gap: "24px",
-          marginTop: "32px"
+          marginTop: "32px",
+          alignItems: "start"
         }}
       >
         {mockSectors.map((sector: Sector) => {

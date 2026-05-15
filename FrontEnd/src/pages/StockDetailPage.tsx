@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { 
   AreaChart, 
   Area, 
@@ -18,6 +19,7 @@ import { mockNews } from "../data/mockNews";
 import "../styles/StockDetailPage.css";
 
 function StockDetailPage() {
+  const navigate = useNavigate();
   // 1. 상태 관리
   const [displayedStock, setDisplayedStock] = useState(
     mockStocks.find(s => s.code === "005930") || mockStocks[0]
@@ -130,6 +132,12 @@ function StockDetailPage() {
           </button>
           <button className="btn-base btn-ai" onClick={() => handleAction("ai")}>
              🤖 AI 예측 조회
+          </button>
+          <button 
+            className="btn-base btn-news-analysis" 
+            onClick={() => navigate(`/stock/${tempSelectedCode}/analysis`)}
+          >
+             ✨ AI 뉴스 감성 분석
           </button>
         </div>
       </div>
