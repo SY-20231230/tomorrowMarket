@@ -45,4 +45,14 @@ public class ArticleController {
 
         return ResponseEntity.ok(response);
     }
+
+    @Operation(summary = "뉴스 기사 감성 통계 조회", description = "특정 종목 또는 산업의 감성 통계(파이 차트, 트렌드, 관련 키워드)를 조회합니다.")
+    @GetMapping("/sentiment/statistics")
+    public ResponseEntity<com.stock.tomorrowMarket.article.dto.SentimentStatisticsResponse> getSentimentStatistics(
+            @RequestParam(required = false) Long stockId,
+            @RequestParam(required = false) Long sectorId
+    ) {
+        com.stock.tomorrowMarket.article.dto.SentimentStatisticsResponse response = articleService.getSentimentStatistics(stockId, sectorId);
+        return ResponseEntity.ok(response);
+    }
 }
