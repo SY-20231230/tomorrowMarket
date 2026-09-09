@@ -46,11 +46,14 @@ public class Article {
     @Column(name = "SENTIMENT_LABEL")
     private SentimentLabel sentimentLabel;
 
+    @Column(name = "KEYWORDS", length = 500)
+    private String keywords;
+
     @Column(name = "REGISTRATION_DATE", nullable = false)
     private LocalDateTime registrationDate;
 
     @Builder
-    public Article(Sector sector, Stock stock, String title, String summary, BigDecimal confidenceScore, BigDecimal sentimentScore, SentimentLabel sentimentLabel, LocalDateTime registrationDate) {
+    public Article(Sector sector, Stock stock, String title, String summary, BigDecimal confidenceScore, BigDecimal sentimentScore, SentimentLabel sentimentLabel, String keywords, LocalDateTime registrationDate) {
         this.sector = sector;
         this.stock = stock;
         this.title = title;
@@ -58,6 +61,7 @@ public class Article {
         this.confidenceScore = confidenceScore;
         this.sentimentScore = sentimentScore;
         this.sentimentLabel = sentimentLabel;
+        this.keywords = keywords;
         this.registrationDate = registrationDate;
     }
 }

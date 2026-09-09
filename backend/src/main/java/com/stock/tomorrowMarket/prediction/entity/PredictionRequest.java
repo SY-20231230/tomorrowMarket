@@ -29,8 +29,9 @@ public class PredictionRequest {
     @JoinColumn(name = "STOCK_ID", nullable = false)
     private Stock stock;
 
-    @Column(name = "PREDICTION_RUN_ID")
-    private Long predictionRunId; // 다른 개발자가 담당하는 도메인일 수 있어 ID 매핑만 우선 적용
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "PREDICTION_RUN_ID")
+    private PredictionRun predictionRun; // 다른 개발자가 담당하는 도메인일 수 있어 ID 매핑만 우선 적용했었으나 PredictionRun 추가로 연관관계 매핑 완료
 
     @Enumerated(EnumType.STRING)
     @Column(name = "REQUEST_STATUS", nullable = false)
@@ -61,10 +62,10 @@ public class PredictionRequest {
         this.requestStatus = requestStatus;
     }
 
-    public void updateStatus(RequestStatus requestStatus, ResultSource resultSource, Long predictionRunId) {
+    public void updateStatus(RequestStatus requestStatus, ResultSource resultSource, PredictionRun predictionRun) {
         this.requestStatus = requestStatus;
         this.resultSource = resultSource;
-        this.predictionRunId = predictionRunId;
+        this.predictionRun = predictionRun;
         if (requestStatus == RequestStatus.COMPLETED) {
             this.completedAt = LocalDateTime.now();
         }
