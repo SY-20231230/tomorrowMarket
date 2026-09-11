@@ -53,4 +53,8 @@ public class Stock {
         this.marketType = marketType;
         this.isActive = isActive;
     }
+
+    public void changeActiveStatus(boolean isActive) {
+        this.isActive = isActive;
+    }
 }
