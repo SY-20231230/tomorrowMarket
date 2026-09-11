@@ -2,6 +2,7 @@ package com.stock.tomorrowMarket.batch.controller;
 
 import com.stock.tomorrowMarket.batch.dto.BatchExecutionRequestDto;
 import com.stock.tomorrowMarket.batch.dto.BatchDetailResponseDto;
+import com.stock.tomorrowMarket.batch.dto.BatchFailureResponseDto;
 import com.stock.tomorrowMarket.batch.dto.BatchResponseDto;
 import com.stock.tomorrowMarket.batch.service.BatchService;
 import com.stock.tomorrowMarket.global.response.ApiResponse;
@@ -11,6 +12,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/batch")
@@ -41,5 +44,21 @@ public class BatchController {
     public ApiResponse<BatchResponseDto> executeBatch(
             @Valid @RequestBody BatchExecutionRequestDto requestDto) {
         return ApiResponse.success(batchService.executeBatch(requestDto));
+    }
+
+    // I-007: 단일 실패 내역 재시도
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("/failures/{failureId}/retry")
+    public ApiResponse<BatchFailureResponseDto> retryFailure(
+            @PathVariable("failureId") Long failureId) {
+        return ApiResponse.success(batchService.retryFailure(failureId));
+    }
+
+    // I-008: 특정 배치의 모든 실패 내역 일괄 재시도
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("/runs/{runId}/retry-failures")
+    public ApiResponse<List<BatchFailureResponseDto>> retryAllFailuresInRun(
+            @PathVariable("runId") Long runId) {
+        return ApiResponse.success(batchService.retryAllFailuresInRun(runId));
     }
 }
