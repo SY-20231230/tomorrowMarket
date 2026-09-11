@@ -21,6 +21,10 @@ public interface SearchLogRepository extends JpaRepository<SearchLog, Long> {
     Page<SearchLog> findBySearchTimeBetween(LocalDateTime startTime, LocalDateTime endTime, Pageable pageable);
 
     // Group by stock and get top searched
-    @Query("SELECT s.stock.stockId, s.stock.stockName, COUNT(s) FROM SearchLog s WHERE s.searchTime BETWEEN :startTime AND :endTime GROUP BY s.stock.stockId, s.stock.stockName ORDER BY COUNT(s) DESC")
+    @Query("SELECT s.stock.stockId, s.stock.name, COUNT(s) FROM SearchLog s WHERE s.searchTime BETWEEN :startTime AND :endTime GROUP BY s.stock.stockId, s.stock.name ORDER BY COUNT(s) DESC")
     List<Object[]> findTopSearchedStocksWithDetails(@Param("startTime") LocalDateTime startTime, @Param("endTime") LocalDateTime endTime, Pageable pageable);
+
+    // B-009: Get recent distinct searched stock IDs for user
+    @Query("SELECT s.stock.stockId FROM SearchLog s WHERE s.user.usersId = :userId GROUP BY s.stock.stockId ORDER BY MAX(s.searchTime) DESC")
+    List<Long> findRecentStockIdsByUserId(@Param("userId") Long userId, Pageable pageable);
 }
