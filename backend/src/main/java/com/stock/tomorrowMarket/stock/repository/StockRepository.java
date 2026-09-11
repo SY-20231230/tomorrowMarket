@@ -13,4 +13,6 @@ public interface StockRepository extends JpaRepository<Stock, Long>, JpaSpecific
     Optional<Stock> findByStockCode(String stockCode);
 
     List<Stock> findBySector_SectorsId(Long sectorId);
+
+    List<Stock> findByIsActiveTrue();
 }

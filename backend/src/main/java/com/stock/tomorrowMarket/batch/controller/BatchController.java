@@ -1,17 +1,16 @@
 package com.stock.tomorrowMarket.batch.controller;
 
+import com.stock.tomorrowMarket.batch.dto.BatchExecutionRequestDto;
 import com.stock.tomorrowMarket.batch.dto.BatchDetailResponseDto;
 import com.stock.tomorrowMarket.batch.dto.BatchResponseDto;
 import com.stock.tomorrowMarket.batch.service.BatchService;
 import com.stock.tomorrowMarket.global.response.ApiResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/batch")
@@ -34,5 +33,13 @@ public class BatchController {
             @PathVariable("runId") Long runId,
             Pageable failurePageable) {
         return ApiResponse.success(batchService.getBatchRunDetail(runId, failurePageable));
+    }
+
+    // I-003, I-004: 수동 배치 실행 (전체 또는 특정 종목들)
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("/runs")
+    public ApiResponse<BatchResponseDto> executeBatch(
+            @Valid @RequestBody BatchExecutionRequestDto requestDto) {
+        return ApiResponse.success(batchService.executeBatch(requestDto));
     }
 }
