@@ -22,4 +22,7 @@ public interface PredictionRunRepository extends JpaRepository<PredictionRun, Lo
 
     @Query("SELECT DISTINCT p.modelName, p.modelVersion FROM PredictionRun p WHERE p.modelName IS NOT NULL")
     List<Object[]> findDistinctModels();
+
+    // I-001: 전체 배치 실행 내역 페이징 조회 (최신순)
+    Page<PredictionRun> findAllByOrderByCreatedAtDesc(Pageable pageable);
 }
