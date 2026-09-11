@@ -1,11 +1,19 @@
 package com.stock.tomorrowMarket.admin.service;
 
+import com.stock.tomorrowMarket.admin.dto.AdminStockResponseDto;
+import com.stock.tomorrowMarket.admin.dto.ModelVersionDto;
 import com.stock.tomorrowMarket.admin.dto.DashboardDto;
 import com.stock.tomorrowMarket.admin.dto.UserResponseDto;
 import com.stock.tomorrowMarket.global.exception.CustomException;
 import com.stock.tomorrowMarket.global.exception.ErrorCode;
 import com.stock.tomorrowMarket.log.repository.AccessLogRepository;
+import com.stock.tomorrowMarket.prediction.dto.PredictionRequestResponseDto;
+import com.stock.tomorrowMarket.prediction.entity.RequestStatus;
+import com.stock.tomorrowMarket.prediction.repository.PredictionRequestRepository;
+import com.stock.tomorrowMarket.prediction.repository.PredictionRunRepository;
 import com.stock.tomorrowMarket.prediction.repository.PredictionRepository;
+import com.stock.tomorrowMarket.stock.entity.Stock;
+import com.stock.tomorrowMarket.stock.repository.StockRepository;
 import com.stock.tomorrowMarket.user.entity.Status;
 import com.stock.tomorrowMarket.user.entity.Users;
 import com.stock.tomorrowMarket.user.repository.UsersRepository;
@@ -26,6 +34,9 @@ public class AdminService {
     private final UsersRepository usersRepository;
     private final PredictionRepository predictionRepository;
     private final AccessLogRepository accessLogRepository;
+    private final StockRepository stockRepository;
+    private final PredictionRunRepository predictionRunRepository;
+    private final PredictionRequestRepository predictionRequestRepository;
 
     // H-001: 대시보드 통계
     @Transactional(readOnly = true)
@@ -65,5 +76,38 @@ public class AdminService {
         Users user = usersRepository.findById(usersId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
         return UserResponseDto.from(user);
+    }
+
+    // H-005: 종목 관리 (목록 조회)
+    @Transactional(readOnly = true)
+    public Page<AdminStockResponseDto> getStocks(Pageable pageable) {
+        return stockRepository.findAll(pageable).map(AdminStockResponseDto::from);
+    }
+
+    // H-005: 종목 관리 (활성화 상태 변경)
+    @Transactional
+    public AdminStockResponseDto changeStockStatus(Long stockId, boolean isActive) {
+        Stock stock = stockRepository.findById(stockId)
+                .orElseThrow(() -> new CustomException(ErrorCode.STOCK_NOT_FOUND));
+        stock.changeActiveStatus(isActive);
+        return AdminStockResponseDto.from(stock);
+    }
+
+    // H-006: 모델 버전 관리 (과거 실행된 모델 버전 목록)
+    @Transactional(readOnly = true)
+    public java.util.List<ModelVersionDto> getDistinctModels() {
+        return predictionRunRepository.findDistinctModels().stream()
+                .map(obj -> ModelVersionDto.builder()
+                        .modelName((String) obj[0])
+                        .modelVersion((String) obj[1])
+                        .build())
+                .collect(java.util.stream.Collectors.toList());
+    }
+
+    // H-007: 유저 예측 요청 실패 내역 모니터링
+    @Transactional(readOnly = true)
+    public Page<PredictionRequestResponseDto> getFailedRequests(Pageable pageable) {
+        return predictionRequestRepository.findByRequestStatusOrderByRequestedAtDesc(RequestStatus.FAILED, pageable)
+                .map(PredictionRequestResponseDto::from);
     }
 }

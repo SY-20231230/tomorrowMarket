@@ -15,5 +15,8 @@ public interface PredictionRequestRepository extends JpaRepository<PredictionReq
 
     // IDX_PREDICTION_REQUESTS_STOCK_STATUS_TIME (STOCK_ID, REQUEST_STATUS, REQUESTED_AT DESC)
     Page<PredictionRequest> findByStock_StockIdAndRequestStatusOrderByRequestedAtDesc(Long stockId, RequestStatus status, Pageable pageable);
+
+    // For Admin monitoring
+    Page<PredictionRequest> findByRequestStatusOrderByRequestedAtDesc(RequestStatus status, Pageable pageable);
 }
 
