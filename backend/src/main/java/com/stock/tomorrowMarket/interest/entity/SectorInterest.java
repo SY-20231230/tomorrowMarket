@@ -42,6 +42,12 @@ public class SectorInterest {
         this.createdAt = LocalDateTime.now();
     }
 
+    public void updateLevel(Byte level) {
+        if (level != null) {
+            this.level = level;
+        }
+    }
+
     @Builder
     public SectorInterest(Users user, Sector sector, Byte level) {
         this.user = user;

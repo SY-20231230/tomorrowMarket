@@ -1,5 +1,9 @@
 package com.stock.tomorrowMarket.interest.service;
 
+import com.stock.tomorrowMarket.global.exception.CustomException;
+import com.stock.tomorrowMarket.global.exception.ErrorCode;
+import com.stock.tomorrowMarket.interest.dto.InterestCreateRequest;
+import com.stock.tomorrowMarket.interest.dto.InterestUpdateRequest;
 import com.stock.tomorrowMarket.interest.dto.SectorInterestResponse;
 import com.stock.tomorrowMarket.interest.entity.SectorInterest;
 import com.stock.tomorrowMarket.interest.repository.SectorInterestRepository;
@@ -25,7 +29,7 @@ public class SectorInterestService {
 
     public List<SectorInterestResponse> getUserSectorInterests(Long userId) {
         Users user = usersRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
         return sectorInterestRepository.findByUser(user).stream()
                 .map(SectorInterestResponse::from)
@@ -33,35 +37,44 @@ public class SectorInterestService {
     }
 
     @Transactional
-    public void addSectorInterest(Long userId, Long sectorId) {
+    public void addSectorInterest(Long userId, InterestCreateRequest request) {
         Users user = usersRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
         
-        Sector sector = sectorRepository.findById(sectorId)
-                .orElseThrow(() -> new IllegalArgumentException("Sector not found with id: " + sectorId));
+        Sector sector = sectorRepository.findById(request.sectorId())
+                .orElseThrow(() -> new CustomException(ErrorCode.SECTOR_NOT_FOUND));
 
         if (sectorInterestRepository.existsByUserAndSector(user, sector)) {
-            throw new IllegalStateException("Already interested in this sector");
+            throw new CustomException(ErrorCode.DUPLICATE_INTEREST);
         }
 
         SectorInterest interest = SectorInterest.builder()
                 .user(user)
                 .sector(sector)
+                .level(request.level())
                 .build();
 
         sectorInterestRepository.save(interest);
     }
 
     @Transactional
-    public void removeSectorInterest(Long userId, Long sectorId) {
+    public void updateSectorInterest(Long userId, Long interestId, InterestUpdateRequest request) {
         Users user = usersRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
         
-        Sector sector = sectorRepository.findById(sectorId)
-                .orElseThrow(() -> new IllegalArgumentException("Sector not found with id: " + sectorId));
+        SectorInterest interest = sectorInterestRepository.findByInterestIdAndUser(interestId, user)
+                .orElseThrow(() -> new CustomException(ErrorCode.SECTOR_NOT_FOUND)); // Or a new NOT_FOUND code for interest
 
-        SectorInterest interest = sectorInterestRepository.findByUserAndSector(user, sector)
-                .orElseThrow(() -> new IllegalArgumentException("Interest not found for this sector"));
+        interest.updateLevel(request.level());
+    }
+
+    @Transactional
+    public void removeSectorInterest(Long userId, Long interestId) {
+        Users user = usersRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+        
+        SectorInterest interest = sectorInterestRepository.findByInterestIdAndUser(interestId, user)
+                .orElseThrow(() -> new CustomException(ErrorCode.SECTOR_NOT_FOUND));
 
         sectorInterestRepository.delete(interest);
     }
