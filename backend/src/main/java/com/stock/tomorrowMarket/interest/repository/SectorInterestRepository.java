@@ -16,5 +16,7 @@ public interface SectorInterestRepository extends JpaRepository<SectorInterest, 
 
     Optional<SectorInterest> findByUserAndSector(Users user, Sector sector);
 
+    Optional<SectorInterest> findByInterestIdAndUser(Long interestId, Users user);
+
     boolean existsByUserAndSector(Users user, Sector sector);
 }
