@@ -15,6 +15,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.stock.tomorrowMarket.global.exception.CustomException;
+import com.stock.tomorrowMarket.global.exception.ErrorCode;
 
 import java.time.LocalDate;
 import com.stock.tomorrowMarket.global.exception.CustomException;
@@ -42,26 +44,7 @@ public class StockService {
     public StockDetailResponse getStockDetail(Long stockId, Long userId) {
         Stock stock = stockRepository.findById(stockId)
                 .orElseThrow(() -> new CustomException(ErrorCode.STOCK_NOT_FOUND));
-
-        if (userId != null) {
-            searchLogService.logStockSearch(userId, stock);
-        }
-
-        StockHistory latestHistory = stockHistoryRepository.findFirstByStockOrderByHistoryDateDesc(stock)
-                .orElse(null);
-
-        return StockDetailResponse.of(stock, latestHistory);
-    }
-
-    @Transactional
-    public StockDetailResponse getStockDetailByCode(String stockCode, Long userId) {
-        Stock stock = stockRepository.findByStockCode(stockCode)
-                .orElseThrow(() -> new CustomException(ErrorCode.STOCK_NOT_FOUND));
-
-        if (userId != null) {
-            searchLogService.logStockSearch(userId, stock);
-        }
-
+        
         StockHistory latestHistory = stockHistoryRepository.findFirstByStockOrderByHistoryDateDesc(stock)
                 .orElse(null);
 
