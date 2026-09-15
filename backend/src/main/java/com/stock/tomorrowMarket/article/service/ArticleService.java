@@ -10,6 +10,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.stock.tomorrowMarket.global.exception.CustomException;
+import com.stock.tomorrowMarket.global.exception.ErrorCode;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -42,6 +44,12 @@ public class ArticleService {
 
         Page<Article> articles = articleRepository.findAll(spec, pageable);
         return articles.map(ArticleResponse::from);
+    }
+
+    public ArticleResponse getArticle(Long articleId) {
+        Article article = articleRepository.findById(articleId)
+                .orElseThrow(() -> new CustomException(ErrorCode.ARTICLE_NOT_FOUND));
+        return ArticleResponse.from(article);
     }
 
     public com.stock.tomorrowMarket.article.dto.SentimentStatisticsResponse getSentimentStatistics(Long stockId, Long sectorId) {
