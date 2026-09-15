@@ -16,6 +16,7 @@ public enum ErrorCode {
     ARTICLE_NOT_FOUND(HttpStatus.NOT_FOUND, "ARTICLE_NOT_FOUND", "해당 기사를 찾을 수 없습니다."),
     PREDICTION_NOT_FOUND(HttpStatus.NOT_FOUND, "PREDICTION_NOT_FOUND", "예측 결과를 찾을 수 없습니다."),
     PREDICTION_RUN_NOT_FOUND(HttpStatus.NOT_FOUND, "PREDICTION_RUN_NOT_FOUND", "예측 실행 기록을 찾을 수 없습니다."),
+    PREDICTION_FAILURE_NOT_FOUND(HttpStatus.NOT_FOUND, "PREDICTION_FAILURE_NOT_FOUND", "예측 실패 기록을 찾을 수 없습니다."),
     DUPLICATE_WATCHLIST(HttpStatus.CONFLICT, "DUPLICATE_WATCHLIST", "이미 관심 종목으로 등록되었습니다."),
     DUPLICATE_INTEREST(HttpStatus.CONFLICT, "DUPLICATE_INTEREST", "이미 관심 산업군으로 등록되었습니다."),
     INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "INVALID_TOKEN", "유효하지 않은 토큰입니다."),
