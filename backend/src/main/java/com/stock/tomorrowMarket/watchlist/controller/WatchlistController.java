@@ -11,7 +11,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-
+import com.stock.tomorrowMarket.global.response.ApiResponse;
 @RestController
 @RequestMapping("/api/watchlists")
 @RequiredArgsConstructor
@@ -22,30 +22,30 @@ public class WatchlistController {
 
     @Operation(summary = "관심 주식 목록 조회", description = "사용자가 등록한 관심 주식(종목) 목록을 조회합니다.")
     @GetMapping
-    public ResponseEntity<List<WatchlistResponse>> getWatchlist(
+    public ResponseEntity<ApiResponse<List<WatchlistResponse>>> getWatchlist(
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
         List<WatchlistResponse> response = watchlistService.getUserWatchlist(userDetails.getUsersId());
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     @Operation(summary = "관심 주식 등록", description = "특정 주식을 관심 종목으로 등록합니다.")
     @PostMapping("/{stockId}")
-    public ResponseEntity<Void> addStockToWatchlist(
+    public ResponseEntity<ApiResponse<String>> addStockToWatchlist(
             @PathVariable Long stockId,
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
         watchlistService.addStockToWatchlist(userDetails.getUsersId(), stockId);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(ApiResponse.success("관심 종목 등록 성공"));
     }
 
     @Operation(summary = "관심 주식 해제", description = "등록된 관심 주식을 관심 종목에서 해제합니다.")
     @DeleteMapping("/{stockId}")
-    public ResponseEntity<Void> removeStockFromWatchlist(
+    public ResponseEntity<ApiResponse<String>> removeStockFromWatchlist(
             @PathVariable Long stockId,
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
         watchlistService.removeStockFromWatchlist(userDetails.getUsersId(), stockId);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(ApiResponse.success("관심 종목 삭제 성공"));
     }
 }
