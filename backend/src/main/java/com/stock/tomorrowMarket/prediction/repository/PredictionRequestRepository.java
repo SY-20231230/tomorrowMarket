@@ -10,6 +10,9 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface PredictionRequestRepository extends JpaRepository<PredictionRequest, Long> {
 
+    // IDX_PREDICTION_REQUESTS_USER_TIME
+    Page<PredictionRequest> findByUser_UsersIdOrderByRequestedAtDesc(Long usersId, Pageable pageable);
+
     // IDX_PREDICTION_REQUESTS_USER_STATUS_TIME (USERS_ID, REQUEST_STATUS, REQUESTED_AT DESC)
     Page<PredictionRequest> findByUser_UsersIdAndRequestStatusOrderByRequestedAtDesc(Long usersId, RequestStatus status, Pageable pageable);
 

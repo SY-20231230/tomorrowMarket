@@ -1,5 +1,7 @@
 package com.stock.tomorrowMarket.stock.controller;
 
+import com.stock.tomorrowMarket.global.response.ApiResponse;
+import com.stock.tomorrowMarket.global.security.CustomUserDetails;
 import com.stock.tomorrowMarket.stock.dto.StockDetailResponse;
 import com.stock.tomorrowMarket.stock.dto.StockHistoryResponse;
 import com.stock.tomorrowMarket.stock.dto.StockResponse;
@@ -13,7 +15,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import com.stock.tomorrowMarket.global.response.ApiResponse;
@@ -43,7 +45,7 @@ public class StockController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
-    @Operation(summary = "주식 상세 조회", description = "주식의 기본 정보와 최근 종가를 조회합니다.")
+    @Operation(summary = "주식 상세 조회", description = "주식의 기본 정보와 최근 종가를 조회합니다. 로그인 시 검색 기록이 자동 저장됩니다.")
     @GetMapping("/{stockId}")
     public ResponseEntity<ApiResponse<StockDetailResponse>> getStockDetail(@PathVariable Long stockId) {
         StockDetailResponse response = stockService.getStockDetail(stockId);

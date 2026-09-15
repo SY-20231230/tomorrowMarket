@@ -19,6 +19,9 @@ import com.stock.tomorrowMarket.global.exception.CustomException;
 import com.stock.tomorrowMarket.global.exception.ErrorCode;
 
 import java.time.LocalDate;
+import com.stock.tomorrowMarket.global.exception.CustomException;
+import com.stock.tomorrowMarket.global.exception.ErrorCode;
+import com.stock.tomorrowMarket.log.service.SearchLogService;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -29,6 +32,7 @@ public class StockService {
 
     private final StockRepository stockRepository;
     private final StockHistoryRepository stockHistoryRepository;
+    private final SearchLogService searchLogService;
 
     public Page<StockResponse> getStocks(String keyword, Long sectorId, MarketType marketType, Pageable pageable) {
         Specification<Stock> spec = StockSpecification.searchStocks(keyword, sectorId, marketType);
@@ -36,7 +40,8 @@ public class StockService {
         return stocks.map(StockResponse::from);
     }
 
-    public StockDetailResponse getStockDetail(Long stockId) {
+    @Transactional
+    public StockDetailResponse getStockDetail(Long stockId, Long userId) {
         Stock stock = stockRepository.findById(stockId)
                 .orElseThrow(() -> new CustomException(ErrorCode.STOCK_NOT_FOUND));
         
@@ -58,7 +63,7 @@ public class StockService {
         }
 
         List<StockHistory> historyList = stockHistoryRepository.findByStockAndHistoryDateBetweenOrderByHistoryDateAsc(stock, startDate, endDate);
-        
+
         return historyList.stream()
                 .map(StockHistoryResponse::from)
                 .collect(Collectors.toList());
