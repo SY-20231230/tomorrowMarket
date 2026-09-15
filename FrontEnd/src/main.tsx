@@ -5,9 +5,12 @@ import "./styles/global.css";
 import "./styles/form.css";
 import "./styles/utility.css";
 import App from './App.tsx'
+import { ToastProvider } from './contexts/ToastContext.tsx'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App />
+    <ToastProvider>
+      <App />
+    </ToastProvider>
   </StrictMode>,
 )

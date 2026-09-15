@@ -19,7 +19,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import com.stock.tomorrowMarket.global.response.ApiResponse;
+import org.springframework.http.ResponseEntity;
 
 @RestController
 @RequestMapping("/api/users")

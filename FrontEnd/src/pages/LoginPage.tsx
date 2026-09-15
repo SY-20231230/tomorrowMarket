@@ -8,6 +8,7 @@ function LoginPage() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [keepLoggedIn, setKeepLoggedIn] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
@@ -143,8 +144,14 @@ function LoginPage() {
               <label className="form-label">비밀번호</label>
               <div className="input-wrapper">
                 <span className="input-icon">🔒</span>
-                <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="login-input" placeholder="비밀번호를 입력하세요" required autoComplete="current-password" />
-                <span style={{ position: "absolute", right: "16px", color: "#475569", cursor: "pointer" }}>👁</span>
+                <input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} className="login-input" placeholder="비밀번호를 입력하세요" required autoComplete="current-password" />
+                <span 
+                  onClick={() => setShowPassword(!showPassword)}
+                  style={{ position: "absolute", right: "16px", color: showPassword ? "var(--cyan)" : "#475569", cursor: "pointer", transition: "0.2s" }}
+                  title={showPassword ? "비밀번호 숨기기" : "비밀번호 보기"}
+                >
+                  {showPassword ? "👀" : "👁"}
+                </span>
               </div>
             </div>
 
