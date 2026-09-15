@@ -1,0 +1,23 @@
+{
+  "industry": "Industrial",
+  "horizon": "Short",
+  "horizon_days": 7,
+  "best_model_path": "/content/drive/MyDrive/tomorrowMarket2/final_tft_models/Industrial/Short/checkpoints/bestTFT-Industrial-Short-epoch=03-val_loss=0.0182.ckpt",
+  "validation_period": "recent_3_months",
+  "validation_start_date": "2025-12-20",
+  "quantiles": [
+    0.02,
+    0.1,
+    0.25,
+    0.5,
+    0.75,
+    0.9,
+    0.98
+  ],
+  "quantile_index_used": 3,
+  "mean_mae": 27969.11315328369,
+  "mean_mape": 5.645174298529811,
+  "mean_direction_acc": 52.25448708594775,
+  "mean_cum_direction_acc": 52.25448708594775,
+  "lgbm_dataset_path": "/content/drive/MyDrive/tomorrowMarket2/final_tft_models/Industrial/Short/lightgbm_dataset/Industrial_Short_tft_for_lightgbm.csv"
+}
