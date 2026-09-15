@@ -106,4 +106,73 @@ public class BatchService {
 
         return BatchResponseDto.from(run);
     }
+
+    // I-007, I-009: 단일 실패 내역 재시도
+    @Transactional
+    public BatchFailureResponseDto retryFailure(Long failureId) {
+        PredictionFailure failure = predictionFailureRepository.findById(failureId)
+                .orElseThrow(() -> new CustomException(ErrorCode.PREDICTION_FAILURE_NOT_FOUND));
+
+        if ("RESOLVED".equals(failure.getRetryStatus())) {
+            throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR); // Or a specific error for already resolved
+        }
+
+        failure.updateRetryStatus("RETRYING");
+        failure.incrementRetryCount();
+
+        try {
+            Prediction prediction = aiPredictionClient.requestPrediction(
+                    failure.getStock(), 
+                    failure.getPredictionRun().getRunType(), 
+                    failure.getPredictionRun());
+            predictionRepository.save(prediction);
+            failure.updateRetryStatus("RESOLVED");
+        } catch (Exception e) {
+            failure.updateRetryStatus("RETRY_FAILED");
+        }
+
+        return BatchFailureResponseDto.from(failure);
+    }
+
+    // I-008, I-009: 특정 배치의 모든 실패 내역 일괄 재시도
+    @Transactional
+    public java.util.List<BatchFailureResponseDto> retryAllFailuresInRun(Long runId) {
+        PredictionRun run = predictionRunRepository.findById(runId)
+                .orElseThrow(() -> new CustomException(ErrorCode.PREDICTION_RUN_NOT_FOUND));
+
+        // 아직 해결되지 않은 실패 내역만 조회
+        List<PredictionFailure> failures = predictionFailureRepository
+                .findByPredictionRun_PredictionRunIdAndRetryStatusNot(runId, "RESOLVED");
+
+        int newlyResolved = 0;
+
+        for (PredictionFailure failure : failures) {
+            failure.updateRetryStatus("RETRYING");
+            failure.incrementRetryCount();
+
+            try {
+                Prediction prediction = aiPredictionClient.requestPrediction(
+                        failure.getStock(),
+                        failure.getPredictionRun().getRunType(),
+                        failure.getPredictionRun());
+                predictionRepository.save(prediction);
+                failure.updateRetryStatus("RESOLVED");
+                newlyResolved++;
+            } catch (Exception e) {
+                failure.updateRetryStatus("RETRY_FAILED");
+            }
+        }
+
+        // 전체 실패 건수 업데이트
+        if (newlyResolved > 0) {
+            int currentSuccess = run.getSuccessCount() + newlyResolved;
+            int currentFailure = run.getFailureCount() - newlyResolved;
+            String finalStatus = currentFailure <= 0 ? "SUCCESS" : "PARTIAL_SUCCESS";
+            run.finishRun(finalStatus, currentSuccess, currentFailure, currentFailure > 0 ? "Some predictions still failed after retry." : null);
+        }
+
+        return failures.stream()
+                .map(BatchFailureResponseDto::from)
+                .collect(java.util.stream.Collectors.toList());
+    }
 }
