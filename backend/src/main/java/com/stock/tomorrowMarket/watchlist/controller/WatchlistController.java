@@ -6,12 +6,14 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import com.stock.tomorrowMarket.global.security.CustomUserDetails;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/watchlist")
+@RequestMapping("/api/watchlists")
 @RequiredArgsConstructor
 @Tag(name = "Watchlist", description = "관심 주식(종목) 관리 API")
 public class WatchlistController {
@@ -21,9 +23,9 @@ public class WatchlistController {
     @Operation(summary = "관심 주식 목록 조회", description = "사용자가 등록한 관심 주식(종목) 목록을 조회합니다.")
     @GetMapping
     public ResponseEntity<List<WatchlistResponse>> getWatchlist(
-            @RequestParam(defaultValue = "1") Long userId // 임시 모킹 유저 아이디
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        List<WatchlistResponse> response = watchlistService.getUserWatchlist(userId);
+        List<WatchlistResponse> response = watchlistService.getUserWatchlist(userDetails.getUsersId());
         return ResponseEntity.ok(response);
     }
 
@@ -31,9 +33,9 @@ public class WatchlistController {
     @PostMapping("/{stockId}")
     public ResponseEntity<Void> addStockToWatchlist(
             @PathVariable Long stockId,
-            @RequestParam(defaultValue = "1") Long userId // 임시 모킹 유저 아이디
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        watchlistService.addStockToWatchlist(userId, stockId);
+        watchlistService.addStockToWatchlist(userDetails.getUsersId(), stockId);
         return ResponseEntity.ok().build();
     }
 
@@ -41,9 +43,9 @@ public class WatchlistController {
     @DeleteMapping("/{stockId}")
     public ResponseEntity<Void> removeStockFromWatchlist(
             @PathVariable Long stockId,
-            @RequestParam(defaultValue = "1") Long userId // 임시 모킹 유저 아이디
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        watchlistService.removeStockFromWatchlist(userId, stockId);
+        watchlistService.removeStockFromWatchlist(userDetails.getUsersId(), stockId);
         return ResponseEntity.ok().build();
     }
 }

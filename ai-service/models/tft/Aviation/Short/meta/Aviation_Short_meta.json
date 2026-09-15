@@ -1,0 +1,23 @@
+{
+  "industry": "Aviation",
+  "horizon": "Short",
+  "horizon_days": 7,
+  "best_model_path": "/content/drive/MyDrive/tomorrowMarket2/final_tft_models/Aviation/Short/checkpoints/bestTFT-Aviation-Short-epoch=04-val_loss=0.0151.ckpt",
+  "validation_period": "recent_3_months",
+  "validation_start_date": "2025-12-20",
+  "quantiles": [
+    0.02,
+    0.1,
+    0.25,
+    0.5,
+    0.75,
+    0.9,
+    0.98
+  ],
+  "quantile_index_used": 3,
+  "mean_mae": 19460.011505567818,
+  "mean_mape": 4.687024548237325,
+  "mean_direction_acc": 50.856072766185115,
+  "mean_cum_direction_acc": 50.856072766185115,
+  "lgbm_dataset_path": "/content/drive/MyDrive/tomorrowMarket2/final_tft_models/Aviation/Short/lightgbm_dataset/Aviation_Short_tft_for_lightgbm.csv"
+}

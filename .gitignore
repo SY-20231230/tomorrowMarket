@@ -41,3 +41,33 @@ gen/
 backend/src/main/resources/application-local.properties
 backend/src/main/resources/application-secret.yml
 backend/src/main/resources/application-local.yml
+
+# =========================================================
+# AI model binaries
+# 실제 모델 파일은 Git에 올리지 않는다.
+# =========================================================
+ai-service/models/**/*.ckpt
+ai-service/models/**/*.pkl
+ai-service/models/**/*.pt
+ai-service/models/**/*.pth
+ai-service/models/**/*.bin
+ai-service/models/**/*.safetensors
+
+# =========================================================
+# AI generated datasets / large result files
+# =========================================================
+ai-service/data/cache/*
+ai-service/data/temp/*
+
+# =========================================================
+# Keep empty directory structure
+# =========================================================
+!ai-service/**/.gitkeep
+
+# =========================================================
+# AI training summary reports / logs
+# =========================================================
+ai-service/models/tft/copy_log.csv
+ai-service/models/tft/final_ftf_real_meta.json
+ai-service/models/tft/final_model_selection_table.csv
+ai-service/models/tft/lightgbm_dataset_cumulative_generation_summary.csv

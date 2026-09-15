@@ -1,0 +1,23 @@
+{
+  "industry": "Financial",
+  "horizon": "Long",
+  "horizon_days": 28,
+  "best_model_path": "/content/drive/MyDrive/tomorrowMarket2/final_tft_models/Financial/Long/checkpoints/bestTFT-Financial-Long-epoch=01-val_loss=0.0150.ckpt",
+  "validation_period": "recent_3_months",
+  "validation_start_date": "2025-12-20",
+  "quantiles": [
+    0.02,
+    0.1,
+    0.25,
+    0.5,
+    0.75,
+    0.9,
+    0.98
+  ],
+  "quantile_index_used": 3,
+  "mean_mae": 12031.477891026203,
+  "mean_mape": 9.143559635481736,
+  "mean_direction_acc": 47.67907162865146,
+  "mean_cum_direction_acc": 47.67907162865146,
+  "lgbm_dataset_path": "/content/drive/MyDrive/tomorrowMarket2/final_tft_models/Financial/Long/lightgbm_dataset/Financial_Long_tft_for_lightgbm.csv"
+}

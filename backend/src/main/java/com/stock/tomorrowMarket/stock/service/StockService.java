@@ -17,6 +17,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import com.stock.tomorrowMarket.global.exception.CustomException;
+import com.stock.tomorrowMarket.global.exception.ErrorCode;
+import com.stock.tomorrowMarket.log.service.SearchLogService;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -27,6 +30,7 @@ public class StockService {
 
     private final StockRepository stockRepository;
     private final StockHistoryRepository stockHistoryRepository;
+    private final SearchLogService searchLogService;
 
     public Page<StockResponse> getStocks(String keyword, Long sectorId, MarketType marketType, Pageable pageable) {
         Specification<Stock> spec = StockSpecification.searchStocks(keyword, sectorId, marketType);
@@ -34,10 +38,30 @@ public class StockService {
         return stocks.map(StockResponse::from);
     }
 
-    public StockDetailResponse getStockDetail(Long stockId) {
+    @Transactional
+    public StockDetailResponse getStockDetail(Long stockId, Long userId) {
         Stock stock = stockRepository.findById(stockId)
-                .orElseThrow(() -> new IllegalArgumentException("Stock not found with id: " + stockId));
-        
+                .orElseThrow(() -> new CustomException(ErrorCode.STOCK_NOT_FOUND));
+
+        if (userId != null) {
+            searchLogService.logStockSearch(userId, stock);
+        }
+
+        StockHistory latestHistory = stockHistoryRepository.findFirstByStockOrderByHistoryDateDesc(stock)
+                .orElse(null);
+
+        return StockDetailResponse.of(stock, latestHistory);
+    }
+
+    @Transactional
+    public StockDetailResponse getStockDetailByCode(String stockCode, Long userId) {
+        Stock stock = stockRepository.findByStockCode(stockCode)
+                .orElseThrow(() -> new CustomException(ErrorCode.STOCK_NOT_FOUND));
+
+        if (userId != null) {
+            searchLogService.logStockSearch(userId, stock);
+        }
+
         StockHistory latestHistory = stockHistoryRepository.findFirstByStockOrderByHistoryDateDesc(stock)
                 .orElse(null);
 
@@ -46,7 +70,7 @@ public class StockService {
 
     public List<StockHistoryResponse> getStockHistory(Long stockId, LocalDate startDate, LocalDate endDate) {
         Stock stock = stockRepository.findById(stockId)
-                .orElseThrow(() -> new IllegalArgumentException("Stock not found with id: " + stockId));
+                .orElseThrow(() -> new CustomException(ErrorCode.STOCK_NOT_FOUND));
 
         if (startDate == null) {
             startDate = LocalDate.now().minusMonths(6);
@@ -56,7 +80,7 @@ public class StockService {
         }
 
         List<StockHistory> historyList = stockHistoryRepository.findByStockAndHistoryDateBetweenOrderByHistoryDateAsc(stock, startDate, endDate);
-        
+
         return historyList.stream()
                 .map(StockHistoryResponse::from)
                 .collect(Collectors.toList());
