@@ -15,6 +15,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.stock.tomorrowMarket.global.exception.CustomException;
+import com.stock.tomorrowMarket.global.exception.ErrorCode;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -36,7 +38,7 @@ public class StockService {
 
     public StockDetailResponse getStockDetail(Long stockId) {
         Stock stock = stockRepository.findById(stockId)
-                .orElseThrow(() -> new IllegalArgumentException("Stock not found with id: " + stockId));
+                .orElseThrow(() -> new CustomException(ErrorCode.STOCK_NOT_FOUND));
         
         StockHistory latestHistory = stockHistoryRepository.findFirstByStockOrderByHistoryDateDesc(stock)
                 .orElse(null);
@@ -46,7 +48,7 @@ public class StockService {
 
     public List<StockHistoryResponse> getStockHistory(Long stockId, LocalDate startDate, LocalDate endDate) {
         Stock stock = stockRepository.findById(stockId)
-                .orElseThrow(() -> new IllegalArgumentException("Stock not found with id: " + stockId));
+                .orElseThrow(() -> new CustomException(ErrorCode.STOCK_NOT_FOUND));
 
         if (startDate == null) {
             startDate = LocalDate.now().minusMonths(6);

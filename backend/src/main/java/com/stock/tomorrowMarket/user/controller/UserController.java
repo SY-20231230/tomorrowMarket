@@ -11,7 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
+import com.stock.tomorrowMarket.global.response.ApiResponse;
 
 @RestController
 @RequestMapping("/api/users")
@@ -21,30 +21,30 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping("/me")
-    public ResponseEntity<?> getMyInfo(@AuthenticationPrincipal CustomUserDetails userDetails) {
+    public ResponseEntity<ApiResponse<UserResponse>> getMyInfo(@AuthenticationPrincipal CustomUserDetails userDetails) {
         UserResponse response = userService.getMyInfo(userDetails.getUsersId());
-        return ResponseEntity.ok(Map.of("success", true, "data", response));
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 
-    @PatchMapping("/me")
-    public ResponseEntity<?> updateMyInfo(
+    @PutMapping("/me")
+    public ResponseEntity<ApiResponse<UserResponse>> updateMyInfo(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @Valid @RequestBody UserUpdateRequest request) {
         UserResponse response = userService.updateMyInfo(userDetails.getUsersId(), request);
-        return ResponseEntity.ok(Map.of("success", true, "data", response));
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     @PutMapping("/me/password")
-    public ResponseEntity<?> changePassword(
+    public ResponseEntity<ApiResponse<String>> changePassword(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @Valid @RequestBody PasswordChangeRequest request) {
         userService.changePassword(userDetails.getUsersId(), request);
-        return ResponseEntity.ok(Map.of("success", true, "data", "비밀번호 변경 성공"));
+        return ResponseEntity.ok(ApiResponse.success("비밀번호 변경 성공"));
     }
 
     @DeleteMapping("/me")
-    public ResponseEntity<?> withdraw(@AuthenticationPrincipal CustomUserDetails userDetails) {
+    public ResponseEntity<ApiResponse<String>> withdraw(@AuthenticationPrincipal CustomUserDetails userDetails) {
         userService.withdraw(userDetails.getUsersId());
-        return ResponseEntity.ok(Map.of("success", true, "data", "회원 탈퇴 성공"));
+        return ResponseEntity.ok(ApiResponse.success("회원 탈퇴 성공"));
     }
 }
