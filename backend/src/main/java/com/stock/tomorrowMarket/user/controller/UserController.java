@@ -19,7 +19,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import org.springframework.http.ResponseEntity;
 
 @RestController
 @RequestMapping("/api/users")
@@ -31,54 +31,32 @@ public class UserController {
 
     @Operation(summary = "내 정보 조회", description = "로그인한 사용자의 프로필 정보를 조회합니다.")
     @GetMapping("/me")
-    public ApiResponse<UserResponse> getMyInfo(@AuthenticationPrincipal CustomUserDetails userDetails) {
+    public ResponseEntity<ApiResponse<UserResponse>> getMyInfo(@AuthenticationPrincipal CustomUserDetails userDetails) {
         UserResponse response = userService.getMyInfo(userDetails.getUsersId());
-        return ApiResponse.success(response);
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 
-    @Operation(summary = "내 정보 수정", description = "사용자의 이름 및 생년월일을 수정합니다.")
-    @PatchMapping("/me")
-    public ApiResponse<UserResponse> updateMyInfo(
+    @PutMapping("/me")
+    public ResponseEntity<ApiResponse<UserResponse>> updateMyInfo(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @Valid @RequestBody UserUpdateRequest request) {
         UserResponse response = userService.updateMyInfo(userDetails.getUsersId(), request);
-        return ApiResponse.success(response);
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     @Operation(summary = "비밀번호 변경", description = "기존 비밀번호를 확인하고 새 비밀번호로 변경합니다.")
     @PutMapping("/me/password")
-    public ApiResponse<String> changePassword(
+    public ResponseEntity<ApiResponse<String>> changePassword(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @Valid @RequestBody PasswordChangeRequest request) {
         userService.changePassword(userDetails.getUsersId(), request);
-        return ApiResponse.success("비밀번호 변경 성공");
+        return ResponseEntity.ok(ApiResponse.success("비밀번호 변경 성공"));
     }
 
     @Operation(summary = "회원 탈퇴", description = "회원 상태를 탈퇴(WITHDRAWN)로 변경합니다.")
     @DeleteMapping("/me")
-    public ApiResponse<String> withdraw(@AuthenticationPrincipal CustomUserDetails userDetails) {
+    public ResponseEntity<ApiResponse<String>> withdraw(@AuthenticationPrincipal CustomUserDetails userDetails) {
         userService.withdraw(userDetails.getUsersId());
-        return ApiResponse.success("회원 탈퇴 성공");
-    }
-
-    @Operation(summary = "최근 조회 종목 목록 조회", description = "사용자가 최근에 상세 조회했던 종목 목록을 최신순으로 조회합니다.")
-    @GetMapping("/me/recent-stocks")
-    public ApiResponse<List<StockResponse>> getRecentStocks(
-            @AuthenticationPrincipal CustomUserDetails userDetails,
-            @RequestParam(defaultValue = "10") int limit) {
-        List<StockResponse> response = userService.getRecentStocks(userDetails.getUsersId(), limit);
-        return ApiResponse.success(response);
-    }
-
-    @Operation(summary = "내 재분석 요청 이력 조회", description = "사용자가 요청했던 AI 재분석 내역을 최신순으로 페이징 조회합니다.")
-    @GetMapping("/me/prediction-requests")
-    public ApiResponse<Page<UserPredictionRequestResponse>> getMyPredictionRequests(
-            @AuthenticationPrincipal CustomUserDetails userDetails,
-            @RequestParam(required = false) RequestStatus status,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        Page<UserPredictionRequestResponse> response = userService.getMyPredictionRequests(userDetails.getUsersId(), status, pageable);
-        return ApiResponse.success(response);
+        return ResponseEntity.ok(ApiResponse.success("회원 탈퇴 성공"));
     }
 }

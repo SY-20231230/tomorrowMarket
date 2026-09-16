@@ -172,10 +172,15 @@ public class AuthService {
     }
 
     private void sendResetMail(String to, String token) {
+        String resetLink = "http://localhost:5173/reset-password?token=" + token;
+        
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(to);
-        message.setSubject("내일장 비밀번호 재설정");
-        message.setText("비밀번호 재설정 토큰입니다: " + token + "\n앱에서 입력하여 비밀번호를 재설정하세요.");
+        message.setSubject("[내일장] 비밀번호 재설정 링크 안내");
+        message.setText("안녕하세요,\n\n" +
+                "비밀번호 재설정을 요청하셨습니다. 아래 링크를 클릭하여 새로운 비밀번호를 설정해 주세요.\n\n" +
+                resetLink + "\n\n" +
+                "본인이 요청하지 않으셨다면 이 이메일을 무시해 주세요.");
         mailSender.send(message);
     }
 }

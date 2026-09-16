@@ -40,7 +40,7 @@ function NewsCard({
           <span className="news-card__stock-name">{relatedStock}</span>
         </div>
         <div className="news-card__impact">
-          <span className="news-card__impact-label">Impact</span>
+          <span className="news-card__impact-label">시장 파급력</span>
           <span className={`news-card__impact-score ${isPositive ? "positive" : "negative"}`}>
             {isPositive ? 82 : 74}
           </span>

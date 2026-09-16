@@ -18,6 +18,8 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import org.springframework.http.ResponseEntity;
+
 import java.time.LocalDate;
 import java.util.List;
 
@@ -31,7 +33,7 @@ public class StockController {
 
     @Operation(summary = "주식 목록 조회", description = "주식 목록을 페이징, 검색, 필터링(시장, 산업)하여 조회합니다.")
     @GetMapping
-    public ApiResponse<Page<StockResponse>> getStocks(
+    public ResponseEntity<ApiResponse<Page<StockResponse>>> getStocks(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Long sectorId,
             @RequestParam(required = false) MarketType marketType,
@@ -40,39 +42,27 @@ public class StockController {
     ) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "name"));
         Page<StockResponse> response = stockService.getStocks(keyword, sectorId, marketType, pageable);
-        return ApiResponse.success(response);
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     @Operation(summary = "주식 상세 조회", description = "주식의 기본 정보와 최근 종가를 조회합니다. 로그인 시 검색 기록이 자동 저장됩니다.")
     @GetMapping("/{stockId}")
-    public ApiResponse<StockDetailResponse> getStockDetail(
+    public ResponseEntity<ApiResponse<StockDetailResponse>> getStockDetail(
             @PathVariable Long stockId,
-            @AuthenticationPrincipal CustomUserDetails userDetails
-    ) {
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
         Long userId = (userDetails != null) ? userDetails.getUsersId() : null;
         StockDetailResponse response = stockService.getStockDetail(stockId, userId);
-        return ApiResponse.success(response);
-    }
-
-    @Operation(summary = "종목코드로 주식 상세 조회", description = "종목코드를 통해 주식의 기본 정보와 최근 종가를 조회합니다. 로그인 시 검색 기록이 자동 저장됩니다.")
-    @GetMapping("/code/{stockCode}")
-    public ApiResponse<StockDetailResponse> getStockDetailByCode(
-            @PathVariable String stockCode,
-            @AuthenticationPrincipal CustomUserDetails userDetails
-    ) {
-        Long userId = (userDetails != null) ? userDetails.getUsersId() : null;
-        StockDetailResponse response = stockService.getStockDetailByCode(stockCode, userId);
-        return ApiResponse.success(response);
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     @Operation(summary = "주식 과거 데이터 조회 (차트용)", description = "주식의 지정된 기간 동안의 종가 및 등락률 데이터를 조회합니다.")
     @GetMapping("/{stockId}/history")
-    public ApiResponse<List<StockHistoryResponse>> getStockHistory(
+    public ResponseEntity<ApiResponse<List<StockHistoryResponse>>> getStockHistory(
             @PathVariable Long stockId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate
     ) {
         List<StockHistoryResponse> response = stockService.getStockHistory(stockId, startDate, endDate);
-        return ApiResponse.success(response);
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 }

@@ -3,11 +3,11 @@ import "./MarketTicker.css";
 
 const MarketTicker: React.FC = () => {
   const tickerData = [
-    { n: "KOSPI", v: "2,874.32", c: "▲ 1.12%", up: true },
-    { n: "KOSDAQ", v: "914.85", c: "▲ 0.76%", up: true },
     { n: "삼성전자", v: "78,900", c: "▲ 2.31%", up: true },
     { n: "SK하이닉스", v: "182,500", c: "▲ 3.18%", up: true },
-    { n: "USD/KRW", v: "1,368.50", c: "▼ 0.24%", up: false }
+    { n: "NAVER", v: "192,400", c: "▲ 1.45%", up: true },
+    { n: "카카오", v: "47,200", c: "▼ 0.84%", up: false },
+    { n: "현대차", v: "245,000", c: "▲ 2.10%", up: true }
   ];
 
   return (

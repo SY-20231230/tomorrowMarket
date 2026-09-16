@@ -11,16 +11,20 @@ type LayoutProps = {
 function Layout({ children }: LayoutProps) {
   const location = useLocation();
   
-  // 티커를 숨길 경로 목록 (메인 페이지 "/" 제외)
-  const hideTickerPaths = ["/login", "/signup", "/forgot-password", "/mypage", "/admin"];
+  // 티커를 숨길 경로 목록 (랜딩 페이지는 티커 노출)
+  const hideTickerPaths = ["/login", "/signup", "/forgot-password", "/reset-password", "/mypage", "/admin"];
+  // 사이드바와 헤더를 아예 숨길 경로 (랜딩, 로그인, 회원가입 등 전체화면 용)
+  const fullScreenPaths = ["/", "/login", "/signup", "/forgot-password", "/reset-password"];
+  
   const shouldShowTicker = !hideTickerPaths.includes(location.pathname);
+  const isFullScreen = fullScreenPaths.includes(location.pathname);
 
   return (
     <div className="layout">
-      <Sidebar />
-      <div className="content-area">
-        <Header />
-        <main className="main">
+      {!isFullScreen && <Sidebar />}
+      <div className="content-area" style={{ marginLeft: isFullScreen ? "0" : undefined }}>
+        {!isFullScreen && <Header />}
+        <main className="main" style={{ padding: isFullScreen ? "0" : undefined }}>
           {shouldShowTicker && <MarketTicker />}
           {children}
         </main>
