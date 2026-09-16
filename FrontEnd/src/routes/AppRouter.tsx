@@ -26,7 +26,6 @@ function AppRouter() {
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
-          
           <Route path="/home" element={<HomePage />} />
           
           <Route path="/stocks" element={<MarketPage />} />
@@ -34,7 +33,6 @@ function AppRouter() {
           
           <Route path="/news" element={<NewsPage />} />
           <Route path="/news/:id" element={<NewsDetailPage />} />
-          
           <Route path="/mypage" element={<MyPage />} />
           <Route path="/admin" element={<AdminPage />} />
           
