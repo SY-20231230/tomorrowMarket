@@ -83,19 +83,19 @@ public class BatchService {
         int successCount = 0;
         int failureCount = 0;
 
-        for (Stock stock : targets) {
-            try {
-                Prediction prediction = aiPredictionClient.requestPrediction(stock, requestDto.getRunType(), run);
-                predictionRepository.save(prediction);
-                successCount++;
-            } catch (Exception e) {
-                failureCount++;
+        try {
+            List<Prediction> predictions = aiPredictionClient.requestBatchPredictions(targets, requestDto.getRunType(), run);
+            predictionRepository.saveAll(predictions);
+            successCount = targets.size();
+        } catch (Exception e) {
+            failureCount = targets.size();
+            for (Stock stock : targets) {
                 PredictionFailure failure = PredictionFailure.builder()
                         .predictionRun(run)
                         .stock(stock)
                         .predictionPeriod(1)
                         .failureStage("AI_CLIENT_CALL")
-                        .errorMessage(e.getMessage() != null ? e.getMessage() : "Unknown Error")
+                        .errorMessage(e.getMessage() != null ? e.getMessage() : "Batch Exception")
                         .build();
                 predictionFailureRepository.save(failure);
             }
@@ -121,11 +121,11 @@ public class BatchService {
         failure.incrementRetryCount();
 
         try {
-            Prediction prediction = aiPredictionClient.requestPrediction(
-                    failure.getStock(), 
+            List<Prediction> predictions = aiPredictionClient.requestBatchPredictions(
+                    List.of(failure.getStock()), 
                     failure.getPredictionRun().getRunType(), 
                     failure.getPredictionRun());
-            predictionRepository.save(prediction);
+            predictionRepository.saveAll(predictions);
             failure.updateRetryStatus("RESOLVED");
         } catch (Exception e) {
             failure.updateRetryStatus("RETRY_FAILED");
@@ -151,11 +151,11 @@ public class BatchService {
             failure.incrementRetryCount();
 
             try {
-                Prediction prediction = aiPredictionClient.requestPrediction(
-                        failure.getStock(),
+                List<Prediction> predictions = aiPredictionClient.requestBatchPredictions(
+                        List.of(failure.getStock()),
                         failure.getPredictionRun().getRunType(),
                         failure.getPredictionRun());
-                predictionRepository.save(prediction);
+                predictionRepository.saveAll(predictions);
                 failure.updateRetryStatus("RESOLVED");
                 newlyResolved++;
             } catch (Exception e) {
