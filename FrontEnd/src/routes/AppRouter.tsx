@@ -10,6 +10,7 @@ import HomePage from "../pages/HomePage";
 import StockDetailPage from "../pages/StockDetailPage";
 import SectorPage from "../pages/SectorPage";
 import SectorPredictionPage from "../pages/SectorPredictionPage";
+import StockListPage from "../pages/StockListPage";
 import MarketPage from "../pages/MarketPage";
 import NewsPage from "../pages/NewsPage";
 import NewsDetailPage from "../pages/NewsDetailPage";
@@ -33,6 +34,8 @@ function AppRouter() {
           <Route path="/sector" element={<SectorPage />} />
           <Route path="/sector/prediction/:sectorId" element={<SectorPredictionPage />} />
           <Route path="/market" element={<MarketPage />} />
+          <Route path="/stocks" element={<StockListPage />} />
+          <Route path="/stocks/:id" element={<StockDetailPage />} />
           <Route path="/news" element={<NewsPage />} />
           <Route path="/news/:id" element={<NewsDetailPage />} />
           <Route path="/mypage" element={<MyPage />} />
