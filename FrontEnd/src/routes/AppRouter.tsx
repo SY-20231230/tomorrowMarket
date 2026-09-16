@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 import Layout from "../components/layout/Layout";
 import LandingPage from "../pages/LandingPage";
@@ -8,8 +8,6 @@ import ForgotPasswordPage from "../pages/ForgotPasswordPage";
 import ResetPasswordPage from "../pages/ResetPasswordPage";
 import HomePage from "../pages/HomePage";
 import StockDetailPage from "../pages/StockDetailPage";
-import SectorPage from "../pages/SectorPage";
-import SectorPredictionPage from "../pages/SectorPredictionPage";
 import MarketPage from "../pages/MarketPage";
 import NewsPage from "../pages/NewsPage";
 import NewsDetailPage from "../pages/NewsDetailPage";
@@ -28,15 +26,20 @@ function AppRouter() {
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
+          
           <Route path="/home" element={<HomePage />} />
-          <Route path="/stock/:code" element={<StockDetailPage />} />
-          <Route path="/sector" element={<SectorPage />} />
-          <Route path="/sector/prediction/:sectorId" element={<SectorPredictionPage />} />
-          <Route path="/market" element={<MarketPage />} />
+          
+          <Route path="/stocks" element={<MarketPage />} />
+          <Route path="/stocks/:id" element={<StockDetailPage />} />
+          
           <Route path="/news" element={<NewsPage />} />
           <Route path="/news/:id" element={<NewsDetailPage />} />
+          
           <Route path="/mypage" element={<MyPage />} />
           <Route path="/admin" element={<AdminPage />} />
+          
+          {/* Catch-all redirect to home */}
+          <Route path="*" element={<Navigate to="/home" replace />} />
         </Routes>
       </Layout>
     </BrowserRouter>
