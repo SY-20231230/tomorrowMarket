@@ -17,7 +17,7 @@ function PredictionPanel({
 }: PredictionPanelProps) {
   return (
     <div className="prediction-panel">
-      <div className="prediction-badge">🤖 AI CONFIDENCE</div>
+      <div className="prediction-badge">🤖 AI 분석 결과</div>
       <h3>{title}</h3>
 
       <div className="prediction-score-wrap">
@@ -35,13 +35,13 @@ function PredictionPanel({
 
       <div className="risk-grid">
         <div className="risk-box">
-          <b>SENTIMENT</b>
+          <b>AI 투심 분석</b>
           <strong style={{ color: sentiment === "긍정" ? "#10b981" : "#ef4444" }}>
             {sentiment}
           </strong>
         </div>
         <div className="risk-box">
-          <b>RISK LEVEL</b>
+          <b>투자 위험도</b>
           <strong style={{ color: riskLevel === "높음" ? "#ef4444" : "#facc15" }}>
             {riskLevel}
           </strong>

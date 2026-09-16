@@ -18,7 +18,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import com.stock.tomorrowMarket.global.response.ApiResponse;
+import org.springframework.http.ResponseEntity;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -47,8 +47,11 @@ public class StockController {
 
     @Operation(summary = "주식 상세 조회", description = "주식의 기본 정보와 최근 종가를 조회합니다. 로그인 시 검색 기록이 자동 저장됩니다.")
     @GetMapping("/{stockId}")
-    public ResponseEntity<ApiResponse<StockDetailResponse>> getStockDetail(@PathVariable Long stockId) {
-        StockDetailResponse response = stockService.getStockDetail(stockId);
+    public ResponseEntity<ApiResponse<StockDetailResponse>> getStockDetail(
+            @PathVariable Long stockId,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        Long userId = (userDetails != null) ? userDetails.getUsersId() : null;
+        StockDetailResponse response = stockService.getStockDetail(stockId, userId);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

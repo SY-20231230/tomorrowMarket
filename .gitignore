@@ -71,3 +71,10 @@ ai-service/models/tft/copy_log.csv
 ai-service/models/tft/final_ftf_real_meta.json
 ai-service/models/tft/final_model_selection_table.csv
 ai-service/models/tft/lightgbm_dataset_cumulative_generation_summary.csv
+
+# =========================================================
+# LightGBM training summary reports / logs
+# =========================================================
+ai-service/models/lightgbm/README_AI_SERVICE.txt
+ai-service/models/lightgbm/production_manifest.json
+ai-service/models/lightgbm/production_integrity.csv
