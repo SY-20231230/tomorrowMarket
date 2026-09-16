@@ -82,9 +82,41 @@ class ModelRegistry:
 
     def _load_tft_models(self):
         logger.info(f"Scanning TFT models in {TFT_ROOT}")
-        # Note: TFT loading logic will be implemented here using pytorch-forecasting.
-        # For Stage 1, we just set up the placeholder to not block startup if torch is slow.
-        pass
+        if not TFT_ROOT.exists():
+            logger.warning(f"TFT root not found at {TFT_ROOT}")
+            return
+            
+        try:
+            from pytorch_forecasting import TemporalFusionTransformer
+        except ImportError:
+            logger.warning("pytorch_forecasting not installed, skipping TFT load.")
+            return
+
+        for industry_dir in TFT_ROOT.iterdir():
+            if not industry_dir.is_dir():
+                continue
+            industry = industry_dir.name
+            for horizon_dir in industry_dir.iterdir():
+                if not horizon_dir.is_dir():
+                    continue
+                horizon = horizon_dir.name
+                
+                # Find .ckpt file
+                ckpt_files = list(horizon_dir.glob("*.ckpt"))
+                if not ckpt_files:
+                    ckpt_files = list(horizon_dir.glob("*.pth"))
+                    
+                if ckpt_files:
+                    ckpt_path = ckpt_files[0]
+                    try:
+                        # Load TFT
+                        tft = TemporalFusionTransformer.load_from_checkpoint(str(ckpt_path))
+                        tft.eval()
+                        self.tft_models[(industry, horizon.upper())] = tft
+                        logger.info(f"Loaded TFT model for {industry} / {horizon.upper()}")
+                    except Exception as e:
+                        logger.error(f"Failed to load TFT model for {industry}/{horizon}: {str(e)}")
+                        raise e
 
     def _load_sentiment_model(self):
         logger.info(f"Scanning Sentiment model in {SENTIMENT_ROOT}")
@@ -117,6 +149,9 @@ class ModelRegistry:
 
     def get_lightgbm_model(self, industry: str, horizon: str):
         return self.lightgbm_models.get((industry, horizon.upper()))
+
+    def get_tft_model(self, industry: str, horizon: str):
+        return self.tft_models.get((industry, horizon.upper()))
 
     def get_features(self, industry: str, horizon: str):
         return self.features_config.get((industry, horizon.upper()))
