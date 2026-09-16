@@ -78,3 +78,9 @@ ai-service/models/tft/lightgbm_dataset_cumulative_generation_summary.csv
 ai-service/models/lightgbm/README_AI_SERVICE.txt
 ai-service/models/lightgbm/production_manifest.json
 ai-service/models/lightgbm/production_integrity.csv
+
+# =========================================================
+# Sentiment analysis notebooks & artifacts
+# =========================================================
+ai-service/models/sentiment/*.txt
+ai-service/models/sentiment/*.ipynb
