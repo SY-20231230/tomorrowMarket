@@ -5,12 +5,9 @@ import logoImg from "../../assets/img/logo.png";
 
 function Sidebar() {
   const menuItems = [
-    { name: "홈 대시보드", path: "/home", icon: "🏠" },
-    { name: "특정 주식 조회", path: "/stock/005930", icon: "🔍" },
-    { name: "분야 주식 조회", path: "/sector", icon: "📊" },
-    { name: "종합지수 조회", path: "/market", icon: "📈" },
+    { name: "오늘의 증시", path: "/home", icon: "🏠" },
+    { name: "주식 조회", path: "/stocks", icon: "🔍" },
     { name: "뉴스 모음", path: "/news", icon: "📰" },
-    { name: "모의투자", path: "/mock-invest", icon: "💰" },
     { name: "마이페이지", path: "/mypage", icon: "👤" },
     { name: "관리자", path: "/admin", icon: "⚙️" },
   ];
