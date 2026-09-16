@@ -46,7 +46,7 @@ public class AiPredictionClient {
                     Map<String, String> m = new HashMap<>();
                     m.put("symbol", s.getStockCode());
                     // Assuming Stock entity has a sector/industry field, fallback to "common" or similar if not
-                    m.put("industry", s.getSector() != null ? s.getSector().getSectorName() : "ITAndSemiconductor");
+                    m.put("industry", s.getSector() != null ? s.getSector().getName() : "ITAndSemiconductor");
                     return m;
                 }).collect(Collectors.toList());
 
@@ -98,5 +98,13 @@ public class AiPredictionClient {
         }
 
         return predictions;
+    }
+
+    public Prediction requestPrediction(Stock stock, String runType, PredictionRun predictionRun) {
+        List<Prediction> preds = requestBatchPredictions(List.of(stock), runType, predictionRun);
+        if (preds != null && !preds.isEmpty()) {
+            return preds.get(0);
+        }
+        return null;
     }
 }

@@ -22,11 +22,10 @@ public class ArticleResponse {
     private List<String> tags;
     private LocalDateTime registrationDate;
 
-    // Optional: Include stock or sector info if needed by frontend
-    private Long stockId;
+    // Flattened info from Article
+    private String symbol;
     private String stockName;
-    private Long sectorId;
-    private String sectorName;
+    private String industry;
 
     public static ArticleResponse from(Article article) {
         List<String> parsedTags = article.getKeywords() != null && !article.getKeywords().isBlank()
@@ -40,14 +39,13 @@ public class ArticleResponse {
                 .articleId(article.getArticleId())
                 .title(article.getTitle())
                 .summary(article.getSummary())
-                .sentimentLabel(article.getSentimentLabel().name())
+                .sentimentLabel(article.getSentimentLabel())
                 .sentimentScore(article.getSentimentScore())
                 .tags(parsedTags)
-                .registrationDate(article.getRegistrationDate())
-                .stockId(article.getStock() != null ? article.getStock().getStockId() : null)
-                .stockName(article.getStock() != null ? article.getStock().getName() : null)
-                .sectorId(article.getSector() != null ? article.getSector().getSectorsId() : null)
-                .sectorName(article.getSector() != null ? article.getSector().getName() : null)
+                .registrationDate(article.getNewsDate())
+                .symbol(article.getSymbol())
+                .stockName(article.getStockName())
+                .industry(article.getIndustry())
                 .build();
     }
 }
