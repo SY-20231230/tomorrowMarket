@@ -8,6 +8,13 @@ class Settings(BaseSettings):
     DB_HOST: str = "localhost"
     DB_PORT: int = 3306
     DB_NAME: str = "tomorrow_market"
+    
+    # NCP API
+    NCP_CLIENT_ID: str
+    NCP_CLIENT_SECRET: str
+    
+    # Webhook
+    BACKEND_WEBHOOK_URL: str = "http://localhost:8080/api/batch/crawling-done"
 
     @property
     def DATABASE_URL(self) -> str:
