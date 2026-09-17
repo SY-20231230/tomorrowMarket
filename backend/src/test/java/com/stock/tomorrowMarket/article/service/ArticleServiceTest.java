@@ -38,7 +38,7 @@ class ArticleServiceTest {
         Article article = Article.builder()
                 .title("테스트 기사")
                 .summary("테스트 내용")
-                .sentimentLabel(com.stock.tomorrowMarket.article.entity.SentimentLabel.POSITIVE)
+                .sentimentLabel("POSITIVE")
                 .registrationDate(java.time.LocalDateTime.now())
                 .keywords("삼성전자, 반도체")
                 .build();
