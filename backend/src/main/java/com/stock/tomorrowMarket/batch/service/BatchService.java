@@ -175,4 +175,18 @@ public class BatchService {
                 .map(BatchFailureResponseDto::from)
                 .collect(java.util.stream.Collectors.toList());
     }
+
+    @Transactional
+    public void handleCrawlingDoneWebhook(com.stock.tomorrowMarket.batch.dto.CrawlingDoneWebhookRequestDto requestDto) {
+        // [Phase 3 - 커밋 1] 파이썬 크롤러 수집 완료 신호 수신 로그 출력
+        System.out.println("==========================================================");
+        System.out.println("[WEBHOOK] 파이썬 뉴스 크롤러 수집 완료 신호 수신 성공!");
+        System.out.println("Status: " + requestDto.getStatus());
+        System.out.println("Message: " + requestDto.getMessage());
+        System.out.println("Timestamp: " + requestDto.getTimestamp());
+        System.out.println("새 수집 기사 수: " + (requestDto.getNewArticleIds() != null ? requestDto.getNewArticleIds().size() : 0));
+        System.out.println("==========================================================");
+        
+        // TODO: [Phase 3 - 커밋 2] 여기서 AI 모델(감성 분석) 릴레이 호출 로직 구현 예정
+    }
 }
