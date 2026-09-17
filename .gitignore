@@ -5,6 +5,10 @@
 *.lock
 *.bin
 *.probe
+__pycache__/
+*.py[cod]
+*$py.class
+
 
 *.properties
 !BackEnd/src/main/resources/application.properties
