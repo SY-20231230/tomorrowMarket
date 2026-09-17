@@ -33,13 +33,15 @@ class Article(Base):
     sentiment_created_at = Column(DateTime, nullable=True)
 
 class StockHistory(Base):
-    __tablename__ = 'STOCK_HISTORY'
+    __tablename__ = 'STOCKS_HISTORY'
     
-    stock_history_id = Column(BigInteger, primary_key=True, autoincrement=True)
-    stock_code = Column(String(20), nullable=False)
-    base_date = Column(DateTime, nullable=False)
-    open_price = Column(Numeric(20, 2))
-    high_price = Column(Numeric(20, 2))
-    low_price = Column(Numeric(20, 2))
-    close_price = Column(Numeric(20, 2))
-    volume = Column(BigInteger)
+    stocks_history_id = Column('STOCKS_HISTORY_ID', BigInteger, primary_key=True, autoincrement=True)
+    stock_id = Column('STOCK_ID', BigInteger, nullable=False)
+    stock_code = Column('STOCK_CODE', String(20), nullable=False)
+    open_price = Column('OPEN_PRICE', Numeric(15, 2), nullable=False)
+    high_price = Column('HIGH_PRICE', Numeric(15, 2), nullable=False)
+    low_price = Column('LOW_PRICE', Numeric(15, 2), nullable=False)
+    closing_price = Column('CLOSING_PRICE', Numeric(15, 2), nullable=False)
+    volume = Column('VOLUME', BigInteger, nullable=False)
+    performance = Column('PERFORMANCE', Numeric(10, 4), nullable=False)
+    history_date = Column('HISTORY_DATE', DateTime, nullable=False)
