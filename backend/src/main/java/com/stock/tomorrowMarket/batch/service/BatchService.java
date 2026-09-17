@@ -84,7 +84,8 @@ public class BatchService {
         int failureCount = 0;
 
         try {
-            List<Prediction> predictions = aiPredictionClient.requestBatchPredictions(targets, requestDto.getRunType(), run);
+            List<Prediction> predictions = aiPredictionClient.requestBatchPredictions(targets, requestDto.getRunType(),
+                    run);
             predictionRepository.saveAll(predictions);
             successCount = targets.size();
         } catch (Exception e) {
@@ -122,8 +123,8 @@ public class BatchService {
 
         try {
             List<Prediction> predictions = aiPredictionClient.requestBatchPredictions(
-                    List.of(failure.getStock()), 
-                    failure.getPredictionRun().getRunType(), 
+                    List.of(failure.getStock()),
+                    failure.getPredictionRun().getRunType(),
                     failure.getPredictionRun());
             predictionRepository.saveAll(predictions);
             failure.updateRetryStatus("RESOLVED");
@@ -168,7 +169,8 @@ public class BatchService {
             int currentSuccess = run.getSuccessCount() + newlyResolved;
             int currentFailure = run.getFailureCount() - newlyResolved;
             String finalStatus = currentFailure <= 0 ? "SUCCESS" : "PARTIAL_SUCCESS";
-            run.finishRun(finalStatus, currentSuccess, currentFailure, currentFailure > 0 ? "Some predictions still failed after retry." : null);
+            run.finishRun(finalStatus, currentSuccess, currentFailure,
+                    currentFailure > 0 ? "Some predictions still failed after retry." : null);
         }
 
         return failures.stream()
@@ -178,15 +180,26 @@ public class BatchService {
 
     @Transactional
     public void handleCrawlingDoneWebhook(com.stock.tomorrowMarket.batch.dto.CrawlingDoneWebhookRequestDto requestDto) {
-        // [Phase 3 - 커밋 1] 파이썬 크롤러 수집 완료 신호 수신 로그 출력
         System.out.println("==========================================================");
         System.out.println("[WEBHOOK] 파이썬 뉴스 크롤러 수집 완료 신호 수신 성공!");
         System.out.println("Status: " + requestDto.getStatus());
         System.out.println("Message: " + requestDto.getMessage());
         System.out.println("Timestamp: " + requestDto.getTimestamp());
-        System.out.println("새 수집 기사 수: " + (requestDto.getNewArticleIds() != null ? requestDto.getNewArticleIds().size() : 0));
+        System.out.println(
+                "새 수집 기사 수: " + (requestDto.getNewArticleIds() != null ? requestDto.getNewArticleIds().size() : 0));
         System.out.println("==========================================================");
-        
-        // TODO: [Phase 3 - 커밋 2] 여기서 AI 모델(감성 분석) 릴레이 호출 로직 구현 예정
+
+        if (requestDto.getNewArticleIds() != null && !requestDto.getNewArticleIds().isEmpty()) {
+            System.out.println("[WEBHOOK] AI 서버로 감성 분석 릴레이 요청 시작... (비동기)");
+            java.util.concurrent.CompletableFuture.runAsync(() -> {
+                try {
+                    aiPredictionClient.requestSentimentAnalysis(requestDto.getNewArticleIds());
+                } catch (Exception e) {
+                    System.err.println("[WEBHOOK] 비동기 감성 분석 릴레이 중 에러 발생: " + e.getMessage());
+                }
+            });
+        } else {
+            System.out.println("[WEBHOOK] 새로 수집된 기사가 없어 감성 분석을 생략합니다.");
+        }
     }
 }
