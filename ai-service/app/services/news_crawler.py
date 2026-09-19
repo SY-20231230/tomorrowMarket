@@ -381,7 +381,7 @@ def run_crawler():
                     )
                     
                     db.add(new_article)
-                    db.commit()
+                    db.flush()
                     db.refresh(new_article)
                     new_article_ids.append(new_article.article_id)
                     valid_articles_count += 1
@@ -395,15 +395,34 @@ def run_crawler():
         # 4. 백엔드로 Webhook 발송
         if settings.BACKEND_WEBHOOK_URL and new_article_ids:
             try:
+                secret = os.getenv("WEBHOOK_SECRET")
+                headers = {
+                    "Content-Type": "application/json",
+                    "X-Webhook-Secret": secret
+                }
+                # 스프링 부트 DTO 규격에 맞춘 Payload (newArticleIds)
+                payload = {
+                    "status": "SUCCESS",
+                    "newArticleIds": new_article_ids,
+                    "message": "수집 완료",
+                    "timestamp": datetime.now().isoformat()
+                }
                 resp = requests.post(
                     settings.BACKEND_WEBHOOK_URL,
-                    json={"article_ids": new_article_ids, "status": "COMPLETED"},
+                    json=payload,
+                    headers=headers,
                     timeout=5
                 )
                 logger.info(f"백엔드 Webhook 발송 완료 (Status: {resp.status_code})")
+                if resp.status_code == 200:
+                    logger.info("백엔드 Webhook 발송 성공!")
+                    db.commit()
+                else:
+                    logger.error(f"백엔드 Webhook 거부 (Status: {resp.status_code})")
+                    db.rollback()                
             except Exception as e:
                 logger.error(f"백엔드 Webhook 발송 실패: {str(e)}")
-                
+                db.rollback()
     except Exception as e:
         logger.error(f"크롤러 실행 중 치명적 에러 발생: {str(e)}")
         db.rollback()
