@@ -39,7 +39,7 @@ class ArticleServiceTest {
                 .title("테스트 기사")
                 .summary("테스트 내용")
                 .sentimentLabel("POSITIVE")
-                .registrationDate(java.time.LocalDateTime.now())
+                .newsDate(java.time.LocalDateTime.now())
                 .keywords("삼성전자, 반도체")
                 .build();
         
