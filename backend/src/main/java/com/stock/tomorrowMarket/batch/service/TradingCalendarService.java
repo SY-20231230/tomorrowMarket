@@ -28,4 +28,41 @@ public class TradingCalendarService {
 
         return true;
     }
+
+    public boolean isFirstTradingDayOfWeek(LocalDate date) {
+        if (!isTradingDay(date)) {
+            return false;
+        }
+
+        // Iterate backwards from yesterday to Monday of this week
+        LocalDate current = date.minusDays(1);
+        while (current.getDayOfWeek() != DayOfWeek.SUNDAY) { // If it reaches Sunday, it has checked all days of this week
+            if (isTradingDay(current)) {
+                return false; // A previous day this week was a trading day
+            }
+            current = current.minusDays(1);
+        }
+
+        return true; // No previous trading days found this week
+    }
+
+    public boolean isFirstTradingDayOfMonth(LocalDate date) {
+        if (!isTradingDay(date)) {
+            return false;
+        }
+
+        // Iterate backwards from yesterday to the 1st of this month
+        LocalDate current = date.minusDays(1);
+        while (current.getMonthValue() == date.getMonthValue() && current.getDayOfMonth() >= 1) {
+            if (isTradingDay(current)) {
+                return false; // A previous day this month was a trading day
+            }
+            if (current.getDayOfMonth() == 1) {
+                break;
+            }
+            current = current.minusDays(1);
+        }
+
+        return true; // No previous trading days found this month
+    }
 }
