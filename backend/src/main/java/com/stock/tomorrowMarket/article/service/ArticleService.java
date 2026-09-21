@@ -4,6 +4,8 @@ import com.stock.tomorrowMarket.article.dto.ArticleResponse;
 import com.stock.tomorrowMarket.article.entity.Article;
 import com.stock.tomorrowMarket.article.repository.ArticleRepository;
 import com.stock.tomorrowMarket.article.repository.ArticleSpecification;
+import com.stock.tomorrowMarket.stock.repository.StockRepository;
+import com.stock.tomorrowMarket.sector.repository.SectorRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -26,20 +28,36 @@ import java.util.stream.Collectors;
 public class ArticleService {
 
     private final ArticleRepository articleRepository;
+    private final StockRepository stockRepository;
+    private final SectorRepository sectorRepository;
 
-    public Page<ArticleResponse> getArticles(Long stockId, Long sectorId, String category, Pageable pageable) {
+    public Page<ArticleResponse> getArticles(Long stockId, Long sectorId, String category, String keyword, String sentimentType, Pageable pageable) {
         Specification<Article> spec = Specification.where(null);
 
         if (stockId != null) {
-            spec = spec.and(ArticleSpecification.byStockId(stockId));
+            var stockOpt = stockRepository.findById(stockId);
+            if (stockOpt.isPresent()) {
+                spec = spec.and(ArticleSpecification.bySymbol(stockOpt.get().getStockCode()));
+            }
         } else if (sectorId != null) {
-            spec = spec.and(ArticleSpecification.bySectorId(sectorId));
+            var sectorOpt = sectorRepository.findById(sectorId);
+            if (sectorOpt.isPresent()) {
+                spec = spec.and(ArticleSpecification.byIndustry(sectorOpt.get().getName()));
+            }
         } else if (category != null) {
             if ("지표".equals(category)) {
                 spec = spec.and(ArticleSpecification.isIndicator());
             } else if ("시장".equals(category)) {
                 spec = spec.and(ArticleSpecification.isMarket());
             }
+        }
+
+        if (keyword != null && !keyword.isBlank()) {
+            spec = spec.and(ArticleSpecification.byKeyword(keyword));
+        }
+
+        if (sentimentType != null && !sentimentType.isBlank()) {
+            spec = spec.and(ArticleSpecification.bySentiment(sentimentType));
         }
 
         Page<Article> articles = articleRepository.findAll(spec, pageable);
@@ -55,14 +73,20 @@ public class ArticleService {
     public com.stock.tomorrowMarket.article.dto.SentimentStatisticsResponse getSentimentStatistics(Long stockId, Long sectorId) {
         Specification<Article> spec = Specification.where(null);
         if (stockId != null) {
-            spec = spec.and(ArticleSpecification.byStockId(stockId));
+            var stockOpt = stockRepository.findById(stockId);
+            if (stockOpt.isPresent()) {
+                spec = spec.and(ArticleSpecification.bySymbol(stockOpt.get().getStockCode()));
+            }
         } else if (sectorId != null) {
-            spec = spec.and(ArticleSpecification.bySectorId(sectorId));
+            var sectorOpt = sectorRepository.findById(sectorId);
+            if (sectorOpt.isPresent()) {
+                spec = spec.and(ArticleSpecification.byIndustry(sectorOpt.get().getName()));
+            }
         }
 
         // Limit to last 30 days
         LocalDateTime thirtyDaysAgo = LocalDateTime.now().minusDays(30);
-        spec = spec.and((root, query, cb) -> cb.greaterThanOrEqualTo(root.get("registrationDate"), thirtyDaysAgo));
+        spec = spec.and((root, query, cb) -> cb.greaterThanOrEqualTo(root.get("newsDate"), thirtyDaysAgo));
 
         List<Article> articles = articleRepository.findAll(spec);
 
@@ -72,14 +96,14 @@ public class ArticleService {
 
         for (Article a : articles) {
             if (a.getSentimentLabel() != null) {
-                switch (a.getSentimentLabel().name()) {
+                switch (a.getSentimentLabel()) {
                     case "POSITIVE" -> pos++;
                     case "NEUTRAL" -> neu++;
                     case "NEGATIVE" -> neg++;
                 }
             }
 
-            LocalDate date = a.getRegistrationDate().toLocalDate();
+            LocalDate date = a.getNewsDate().toLocalDate();
             dailyScores.computeIfAbsent(date, k -> new ArrayList<>()).add(a.getSentimentScore());
 
             if (a.getKeywords() != null && !a.getKeywords().isBlank()) {

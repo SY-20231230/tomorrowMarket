@@ -1,7 +1,5 @@
 package com.stock.tomorrowMarket.article.entity;
 
-import com.stock.tomorrowMarket.sector.entity.Sector;
-import com.stock.tomorrowMarket.stock.entity.Stock;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -22,46 +20,89 @@ public class Article {
     @Column(name = "ARTICLE_ID")
     private Long articleId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "SECTORS_ID")
-    private Sector sector;
+    @Column(name = "NEWS_DATE")
+    private LocalDateTime newsDate;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "STOCK_ID")
-    private Stock stock;
+    @Column(name = "MEDIA", length = 100)
+    private String media;
 
-    @Column(name = "TITLE", nullable = false)
+    @Column(name = "REPORTER", length = 100)
+    private String reporter;
+
+    @Column(name = "TITLE")
     private String title;
 
     @Column(name = "SUMMARY", columnDefinition = "TEXT")
     private String summary;
 
-    @Column(name = "CONFIDENCE_SCORE", precision = 6, scale = 5)
-    private BigDecimal confidenceScore;
+    @Column(name = "CONTENT", columnDefinition = "LONGTEXT")
+    private String content;
 
-    @Column(name = "SENTIMENT_SCORE", precision = 6, scale = 5)
-    private BigDecimal sentimentScore;
+    @Column(name = "URL", length = 500)
+    private String url;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "SENTIMENT_LABEL")
-    private SentimentLabel sentimentLabel;
+    @Column(name = "SYMBOL", length = 20)
+    private String symbol;
+
+    @Column(name = "STOCK_NAME", length = 100)
+    private String stockName;
+
+    @Column(name = "INDUSTRY", length = 100)
+    private String industry;
+
+    @Column(name = "SEARCH_KEYWORD", length = 100)
+    private String searchKeyword;
 
     @Column(name = "KEYWORDS", length = 500)
     private String keywords;
 
-    @Column(name = "REGISTRATION_DATE", nullable = false)
-    private LocalDateTime registrationDate;
+    // Use String instead of Enum to match Python AI logic flawlessly
+    @Column(name = "SENTIMENT_LABEL", length = 20)
+    private String sentimentLabel;
+
+    @Column(name = "SENTIMENT_SCORE", precision = 10, scale = 5)
+    private BigDecimal sentimentScore;
+
+    @Column(name = "POSITIVE_PROB", precision = 10, scale = 5)
+    private BigDecimal positiveProb;
+
+    @Column(name = "NEUTRAL_PROB", precision = 10, scale = 5)
+    private BigDecimal neutralProb;
+
+    @Column(name = "NEGATIVE_PROB", precision = 10, scale = 5)
+    private BigDecimal negativeProb;
+
+    @Column(name = "MODEL_NAME", length = 100)
+    private String modelName;
+
+    @Column(name = "MODEL_VERSION", length = 100)
+    private String modelVersion;
+
+    @Column(name = "SENTIMENT_CREATED_AT")
+    private LocalDateTime sentimentCreatedAt;
 
     @Builder
-    public Article(Sector sector, Stock stock, String title, String summary, BigDecimal confidenceScore, BigDecimal sentimentScore, SentimentLabel sentimentLabel, String keywords, LocalDateTime registrationDate) {
-        this.sector = sector;
-        this.stock = stock;
+    public Article(Long articleId, LocalDateTime newsDate, String media, String reporter, String title, String summary, String content, String url, String symbol, String stockName, String industry, String searchKeyword, String keywords, String sentimentLabel, BigDecimal sentimentScore, BigDecimal positiveProb, BigDecimal neutralProb, BigDecimal negativeProb, String modelName, String modelVersion, LocalDateTime sentimentCreatedAt) {
+        this.articleId = articleId;
+        this.newsDate = newsDate;
+        this.media = media;
+        this.reporter = reporter;
         this.title = title;
         this.summary = summary;
-        this.confidenceScore = confidenceScore;
-        this.sentimentScore = sentimentScore;
-        this.sentimentLabel = sentimentLabel;
+        this.content = content;
+        this.url = url;
+        this.symbol = symbol;
+        this.stockName = stockName;
+        this.industry = industry;
+        this.searchKeyword = searchKeyword;
         this.keywords = keywords;
-        this.registrationDate = registrationDate;
+        this.sentimentLabel = sentimentLabel;
+        this.sentimentScore = sentimentScore;
+        this.positiveProb = positiveProb;
+        this.neutralProb = neutralProb;
+        this.negativeProb = negativeProb;
+        this.modelName = modelName;
+        this.modelVersion = modelVersion;
+        this.sentimentCreatedAt = sentimentCreatedAt;
     }
 }

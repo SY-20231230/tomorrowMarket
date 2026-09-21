@@ -13,20 +13,20 @@ public class ArticleSpecification {
             "금리", "환율", "CPI", "GDP", "물가", "고용", "실업률", "수출", "수입", "무역", "FOMC", "연준"
     );
 
-    public static Specification<Article> byStockId(Long stockId) {
+    public static Specification<Article> bySymbol(String symbol) {
         return (root, query, criteriaBuilder) ->
-                criteriaBuilder.equal(root.join("stock").get("stockId"), stockId);
+                criteriaBuilder.equal(root.get("symbol"), symbol);
     }
 
-    public static Specification<Article> bySectorId(Long sectorId) {
+    public static Specification<Article> byIndustry(String industry) {
         return (root, query, criteriaBuilder) ->
-                criteriaBuilder.equal(root.join("sector").get("sectorId"), sectorId);
+                criteriaBuilder.equal(root.get("industry"), industry);
     }
 
     public static Specification<Article> isIndicator() {
         return (root, query, criteriaBuilder) -> {
-            Predicate stockIsNull = criteriaBuilder.isNull(root.get("stock"));
-            Predicate sectorIsNull = criteriaBuilder.isNull(root.get("sector"));
+            Predicate stockIsNull = criteriaBuilder.isNull(root.get("symbol"));
+            Predicate sectorIsNull = criteriaBuilder.isNull(root.get("industry"));
 
             List<Predicate> keywordPredicates = new ArrayList<>();
             for (String keyword : INDICATOR_KEYWORDS) {
@@ -41,8 +41,8 @@ public class ArticleSpecification {
 
     public static Specification<Article> isMarket() {
         return (root, query, criteriaBuilder) -> {
-            Predicate stockIsNull = criteriaBuilder.isNull(root.get("stock"));
-            Predicate sectorIsNull = criteriaBuilder.isNull(root.get("sector"));
+            Predicate stockIsNull = criteriaBuilder.isNull(root.get("symbol"));
+            Predicate sectorIsNull = criteriaBuilder.isNull(root.get("industry"));
 
             List<Predicate> keywordPredicates = new ArrayList<>();
             for (String keyword : INDICATOR_KEYWORDS) {
@@ -53,5 +53,18 @@ public class ArticleSpecification {
 
             return criteriaBuilder.and(stockIsNull, sectorIsNull, hasNoKeyword);
         };
+    }
+
+    public static Specification<Article> byKeyword(String keyword) {
+        return (root, query, criteriaBuilder) -> {
+            Predicate inTitle = criteriaBuilder.like(root.get("title"), "%" + keyword + "%");
+            Predicate inKeywords = criteriaBuilder.like(root.get("keywords"), "%" + keyword + "%");
+            return criteriaBuilder.or(inTitle, inKeywords);
+        };
+    }
+
+    public static Specification<Article> bySentiment(String sentiment) {
+        return (root, query, criteriaBuilder) ->
+                criteriaBuilder.equal(root.get("sentimentLabel"), sentiment.toUpperCase());
     }
 }

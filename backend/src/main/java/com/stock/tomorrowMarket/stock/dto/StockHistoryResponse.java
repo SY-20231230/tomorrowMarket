@@ -12,13 +12,21 @@ import java.time.LocalDate;
 public class StockHistoryResponse {
 
     private LocalDate date;
+    private BigDecimal openPrice;
+    private BigDecimal highPrice;
+    private BigDecimal lowPrice;
     private BigDecimal closingPrice;
+    private Long volume;
     private BigDecimal performance;
 
     public static StockHistoryResponse from(StockHistory history) {
         return StockHistoryResponse.builder()
                 .date(history.getHistoryDate())
+                .openPrice(history.getOpenPrice())
+                .highPrice(history.getHighPrice())
+                .lowPrice(history.getLowPrice())
                 .closingPrice(history.getClosingPrice())
+                .volume(history.getVolume())
                 .performance(history.getPerformance())
                 .build();
     }

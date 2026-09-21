@@ -61,4 +61,20 @@ public class BatchController {
             @PathVariable("runId") Long runId) {
         return ApiResponse.success(batchService.retryAllFailuresInRun(runId));
     }
+
+    // Webhook API: 파이썬 크롤러 완료 신호 수신
+    @PostMapping("/crawling-done")
+    public ApiResponse<String> crawlingDoneWebhook(
+            @org.springframework.web.bind.annotation.RequestHeader(value = "X-Webhook-Secret", required = false) String secret,
+            @RequestBody com.stock.tomorrowMarket.batch.dto.CrawlingDoneWebhookRequestDto requestDto,
+            @org.springframework.beans.factory.annotation.Value("${app.webhook.secret}") String expectedSecret) {
+
+        if (secret == null || !secret.equals(expectedSecret)) {
+            throw new com.stock.tomorrowMarket.global.exception.CustomException(
+                    com.stock.tomorrowMarket.global.exception.ErrorCode.UNAUTHORIZED);
+        }
+
+        batchService.handleCrawlingDoneWebhook(requestDto);
+        return ApiResponse.success("Webhook received successfully.");
+    }
 }
