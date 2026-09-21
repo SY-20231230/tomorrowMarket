@@ -54,4 +54,17 @@ public class ArticleSpecification {
             return criteriaBuilder.and(stockIsNull, sectorIsNull, hasNoKeyword);
         };
     }
+
+    public static Specification<Article> byKeyword(String keyword) {
+        return (root, query, criteriaBuilder) -> {
+            Predicate inTitle = criteriaBuilder.like(root.get("title"), "%" + keyword + "%");
+            Predicate inKeywords = criteriaBuilder.like(root.get("keywords"), "%" + keyword + "%");
+            return criteriaBuilder.or(inTitle, inKeywords);
+        };
+    }
+
+    public static Specification<Article> bySentiment(String sentiment) {
+        return (root, query, criteriaBuilder) ->
+                criteriaBuilder.equal(root.get("sentimentLabel"), sentiment.toUpperCase());
+    }
 }

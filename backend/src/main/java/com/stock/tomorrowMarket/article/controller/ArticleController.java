@@ -28,10 +28,10 @@ public class ArticleController {
 
     private Sort getSort(String sort) {
         return switch (sort.toUpperCase()) {
-            case "OLDEST" -> Sort.by(Sort.Direction.ASC, "registrationDate");
+            case "OLDEST" -> Sort.by(Sort.Direction.ASC, "newsDate");
             case "SENTIMENT_DESC" -> Sort.by(Sort.Direction.DESC, "sentimentScore");
             case "SENTIMENT_ASC" -> Sort.by(Sort.Direction.ASC, "sentimentScore");
-            default -> Sort.by(Sort.Direction.DESC, "registrationDate"); // LATEST is default
+            default -> Sort.by(Sort.Direction.DESC, "newsDate"); // LATEST is default
         };
     }
 
@@ -48,13 +48,15 @@ public class ArticleController {
             @RequestParam(required = false) Long stockId,
             @RequestParam(required = false) Long sectorId,
             @RequestParam(required = false) String category, // "시장" or "지표"
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String sentimentType, // "POSITIVE", "NEGATIVE", "NEUTRAL"
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "4") int size,
             @RequestParam(defaultValue = "LATEST") String sort // LATEST, OLDEST, SENTIMENT_DESC, SENTIMENT_ASC
     ) {
         Sort sorting = getSort(sort);
         Pageable pageable = PageRequest.of(page, size, sorting);
-        Page<ArticleResponse> response = articleService.getArticles(stockId, sectorId, category, pageable);
+        Page<ArticleResponse> response = articleService.getArticles(stockId, sectorId, category, keyword, sentimentType, pageable);
 
         return ResponseEntity.ok(ApiResponse.success(response));
     }
@@ -63,13 +65,15 @@ public class ArticleController {
     @GetMapping("/stocks/{stockId}")
     public ResponseEntity<ApiResponse<Page<ArticleResponse>>> getArticlesByStock(
             @PathVariable Long stockId,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String sentimentType,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "4") int size,
             @RequestParam(defaultValue = "LATEST") String sort
     ) {
         Sort sorting = getSort(sort);
         Pageable pageable = PageRequest.of(page, size, sorting);
-        Page<ArticleResponse> response = articleService.getArticles(stockId, null, null, pageable);
+        Page<ArticleResponse> response = articleService.getArticles(stockId, null, null, keyword, sentimentType, pageable);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -77,13 +81,15 @@ public class ArticleController {
     @GetMapping("/sectors/{sectorId}")
     public ResponseEntity<ApiResponse<Page<ArticleResponse>>> getArticlesBySector(
             @PathVariable Long sectorId,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String sentimentType,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "4") int size,
             @RequestParam(defaultValue = "LATEST") String sort
     ) {
         Sort sorting = getSort(sort);
         Pageable pageable = PageRequest.of(page, size, sorting);
-        Page<ArticleResponse> response = articleService.getArticles(null, sectorId, null, pageable);
+        Page<ArticleResponse> response = articleService.getArticles(null, sectorId, null, keyword, sentimentType, pageable);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

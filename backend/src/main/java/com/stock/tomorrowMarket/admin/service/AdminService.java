@@ -37,6 +37,7 @@ public class AdminService {
     private final StockRepository stockRepository;
     private final PredictionRunRepository predictionRunRepository;
     private final PredictionRequestRepository predictionRequestRepository;
+    private final com.stock.tomorrowMarket.prediction.service.PredictionBatchService predictionBatchService;
 
     // H-001: 대시보드 통계
     @Transactional(readOnly = true)
@@ -109,5 +110,12 @@ public class AdminService {
     public Page<PredictionRequestResponseDto> getFailedRequests(Pageable pageable) {
         return predictionRequestRepository.findByRequestStatusOrderByRequestedAtDesc(RequestStatus.FAILED, pageable)
                 .map(PredictionRequestResponseDto::from);
+    }
+
+    // H-008: 관리자 예측 모델 강제 구동
+    @Transactional
+    public String runPredictionBatch() {
+        predictionBatchService.runScheduledBatch("ADMIN_TRIGGER");
+        return "Batch prediction triggered successfully.";
     }
 }

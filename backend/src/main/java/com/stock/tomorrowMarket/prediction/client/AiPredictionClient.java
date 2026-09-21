@@ -31,8 +31,8 @@ public class AiPredictionClient {
 
     private final RestTemplate restTemplate;
 
-    public AiPredictionClient() {
-        this.restTemplate = new RestTemplate();
+    public AiPredictionClient(org.springframework.boot.web.client.RestTemplateBuilder builder) {
+        this.restTemplate = builder.build();
     }
 
     public List<Prediction> requestBatchPredictions(List<Stock> stocks, String runType, PredictionRun predictionRun) {
@@ -106,5 +106,28 @@ public class AiPredictionClient {
             return preds.get(0);
         }
         return null;
+    }
+
+    public void requestSentimentAnalysis(List<Long> articleIds) {
+        String url = aiServiceUrl + "/api/v1/sentiment/analyze";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        Map<String, Object> requestBody = new HashMap<>();
+        requestBody.put("article_ids", articleIds);
+
+        HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(requestBody, headers);
+
+        try {
+            ResponseEntity<Map> response = restTemplate.postForEntity(url, requestEntity, Map.class);
+            if (response.getStatusCode().is2xxSuccessful()) {
+                System.out.println("[WEBHOOK] AI 서버 감성 분석 요청 성공 (대상 기사 ID: " + articleIds.size() + "건)");
+            } else {
+                System.err.println("[WEBHOOK] AI 서버 감성 분석 요청 실패 - 응답 코드: " + response.getStatusCode());
+            }
+        } catch (Exception e) {
+            System.err.println("[WEBHOOK] AI 서버 감성 분석 요청 에러 - 원인: " + e.getMessage());
+        }
     }
 }

@@ -8,8 +8,6 @@ import ForgotPasswordPage from "../pages/ForgotPasswordPage";
 import ResetPasswordPage from "../pages/ResetPasswordPage";
 import HomePage from "../pages/HomePage";
 import StockDetailPage from "../pages/StockDetailPage";
-import SectorPage from "../pages/SectorPage";
-import SectorPredictionPage from "../pages/SectorPredictionPage";
 import StockListPage from "../pages/StockListPage";
 import MarketPage from "../pages/MarketPage";
 import NewsPage from "../pages/NewsPage";
@@ -32,8 +30,6 @@ function AppRouter() {
           
           <Route path="/home" element={<HomePage />} />
           <Route path="/stock/:code" element={<StockDetailPage />} />
-          <Route path="/sector" element={<SectorPage />} />
-          <Route path="/sector/prediction/:sectorId" element={<SectorPredictionPage />} />
           <Route path="/market" element={<MarketPage />} />
           <Route path="/stocks" element={<StockListPage />} />
           <Route path="/stocks/:id" element={<StockDetailPage />} />

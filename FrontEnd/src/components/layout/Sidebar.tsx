@@ -1,16 +1,30 @@
+import React, { useState, useEffect } from "react";
 import { Link, NavLink } from "react-router-dom";
 import "./Sidebar.css";
 // 경로를 더 명확하게 지정합니다.
 import logoImg from "../../assets/img/logo.png";
+import api from "../../api/axios";
 
 function Sidebar() {
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    api.get("/users/me").then(res => {
+      if (res.data?.data) {
+        setUser(res.data.data);
+      }
+    }).catch(console.error);
+  }, []);
   const menuItems = [
     { name: "오늘의 증시", path: "/home", icon: "🏠" },
     { name: "주식 조회", path: "/stocks", icon: "🔍" },
     { name: "뉴스 모음", path: "/news", icon: "📰" },
     { name: "마이페이지", path: "/mypage", icon: "👤" },
-    { name: "관리자", path: "/admin", icon: "⚙️" },
   ];
+
+  if (user?.role === "ROLE_ADMIN" || user?.role === "ADMIN") {
+    menuItems.push({ name: "관리자", path: "/admin", icon: "⚙️" });
+  }
 
   return (
     <aside className="sidebar">
@@ -51,10 +65,14 @@ function Sidebar() {
 
       <div className="sidebar-footer">
         <div className="user-profile">
-          <div className="avatar">JD</div>
+          <div className="avatar">{user?.name ? user.name.substring(0, 2).toUpperCase() : "G"}</div>
           <div className="user-info">
-            <p className="username">John Doe</p>
-            <p className="role">Premium User</p>
+            <p className="username">{user?.name || "Guest"}</p>
+            <p className="role">
+              {user?.role === "ROLE_ADMIN" || user?.role === "ADMIN" ? "Admin" : 
+               user?.role === "ROLE_PREMIUM" || user?.role === "PREMIUM" ? "Premium User" : 
+               user?.role === "ROLE_USER" || user?.role === "USER" ? "Basic User" : "Visitor"}
+            </p>
           </div>
         </div>
       </div>
