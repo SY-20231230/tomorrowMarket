@@ -37,7 +37,10 @@ public class StockService {
     public Page<StockResponse> getStocks(String keyword, Long sectorId, MarketType marketType, Pageable pageable) {
         Specification<Stock> spec = StockSpecification.searchStocks(keyword, sectorId, marketType);
         Page<Stock> stocks = stockRepository.findAll(spec, pageable);
-        return stocks.map(StockResponse::from);
+        return stocks.map(stock -> {
+            StockHistory latestHistory = stockHistoryRepository.findFirstByStockOrderByHistoryDateDesc(stock).orElse(null);
+            return StockResponse.of(stock, latestHistory);
+        });
     }
 
     @Transactional

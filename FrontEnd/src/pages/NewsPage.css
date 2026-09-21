@@ -1,6 +1,8 @@
 .news-page {
   padding: 0;
   color: #fff;
+  max-width: 1100px;
+  margin: 0 auto;
 }
 
 /* Page Header */
@@ -30,11 +32,12 @@
 
 .search-container {
   position: relative;
-  width: 320px;
+  min-width: 320px;
 }
 
 .search-input {
   width: 100%;
+  box-sizing: border-box;
   background: rgba(30, 41, 59, 0.6);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
@@ -58,7 +61,6 @@
   gap: 20px;
   margin-bottom: 32px;
 }
-
 .stats-card {
   background: rgba(30, 41, 59, 0.4);
   border: 1px solid rgba(255, 255, 255, 0.05);
@@ -109,9 +111,19 @@
   font-size: 13px;
 }
 
-.index-name { color: #94a3b8; font-weight: 700; }
-.index-score { font-weight: 800; color: #fff; }
-.index-change.up { color: #fbbf24; }
+.index-name {
+  color: #94a3b8;
+  font-weight: 700;
+}
+
+.index-score {
+  font-weight: 800;
+  color: #fff;
+}
+
+.index-change.up {
+  color: #fbbf24;
+}
 
 /* Filter Bar */
 .news-filter-bar {
@@ -130,7 +142,8 @@
 }
 
 .filter-tab {
-  padding: 6px 14px; /* 높이 축소 */
+  padding: 6px 14px;
+  /* 높이 축소 */
   border-radius: 10px;
   font-size: 13px;
   font-weight: 700;
@@ -153,8 +166,10 @@
   font-size: 13px;
   font-weight: 700;
   cursor: pointer;
-  white-space: nowrap; /* 글씨 줄바꿈 방지 */
-  min-width: 120px; /* 버튼 가로 길이 충분히 확보 */
+  white-space: nowrap;
+  /* 글씨 줄바꿈 방지 */
+  min-width: 120px;
+  /* 버튼 가로 길이 충분히 확보 */
   transition: 0.2s;
 }
 
@@ -179,10 +194,7 @@
 
 /* Main Layout */
 .news-main-layout {
-  display: grid;
-  grid-template-columns: 1fr 320px;
-  gap: 32px;
-  align-items: start; /* 사이드바 내용이 위로 딱 붙도록 설정 */
+  display: block;
 }
 
 /* News Cards */
@@ -201,6 +213,8 @@
   padding: 20px;
   transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   cursor: pointer;
+  overflow: hidden;
+  max-width: 100%;
 }
 
 .news-card:hover {
@@ -215,13 +229,16 @@
   height: 120px;
   border-radius: 12px;
   object-fit: cover;
-  background: rgba(255, 255, 255, 0.05); /* 이미지 깨짐 대비 기본 배경 */
+  background: rgba(255, 255, 255, 0.05);
+  /* 이미지 깨짐 대비 기본 배경 */
 }
 
 .news-content {
   flex: 1;
   display: flex;
   flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .news-title {
@@ -229,6 +246,8 @@
   font-weight: 800;
   margin-bottom: 8px;
   line-height: 1.4;
+  white-space: normal;
+  word-break: break-all;
 }
 
 .news-summary {
@@ -240,6 +259,9 @@
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: normal;
+  word-break: break-all;
 }
 
 .news-meta {
@@ -252,13 +274,16 @@
 .meta-left {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 12px;
   font-size: 12px;
   color: #64748b;
+  min-width: 0;
 }
 
 .news-tags {
   display: flex;
+  flex-wrap: wrap;
   gap: 6px;
 }
 
@@ -277,61 +302,40 @@
 }
 
 .badge-score {
-  background: rgba(16, 185, 129, 0.1);
-  color: #10b981;
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 13px;
+  padding: 6px 12px;
+  border-radius: 8px;
   font-weight: 800;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
 }
 
 .badge-impact {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 900;
-  color: #ef4444;
+  padding: 4px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
 }
 
-/* Sidebar Charts */
-.sidebar-section {
-  background: rgba(30, 41, 59, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 20px;
-  padding: 0 20px 16px 20px; /* 상단 패딩을 0으로 설정하여 여백 완전 제거 */
-  margin-bottom: 20px;
-}
-
-.section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 0;
-  margin-bottom: 16px;
-  padding-top: 20px; /* 25px에서 5px 줄여서 20px로 조정 */
-}
-
-.section-title {
-  font-size: 14px;
-  font-weight: 800;
-}
-
-.keyword-list {
+/* Empty States */
+.premium-empty-state {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-}
-
-.keyword-item {
-  display: flex;
-  justify-content: space-between;
   align-items: center;
-  font-size: 13px;
+  justify-content: center;
+  height: 100%;
+  color: #64748b;
+  text-align: center;
 }
 
-.kw-rank { width: 24px; font-weight: 900; color: #64748b; }
-.kw-name { flex: 1; font-weight: 700; }
-.kw-change { font-weight: 800; }
-.kw-change.up { color: #10b981; }
-.kw-change.down { color: #ef4444; }
+.premium-empty-state .icon {
+  font-size: 32px;
+  margin-bottom: 12px;
+  opacity: 0.5;
+}
 
 /* Pagination */
 .pagination {

@@ -20,12 +20,15 @@ public class ArticleResponse {
     private String sentimentLabel;
     private BigDecimal sentimentScore;
     private List<String> tags;
+    private String content;
+    private String url;
     private LocalDateTime registrationDate;
 
     // Flattened info from Article
     private String symbol;
     private String stockName;
     private String industry;
+    private String source;
 
     public static ArticleResponse from(Article article) {
         List<String> parsedTags = article.getKeywords() != null && !article.getKeywords().isBlank()
@@ -42,10 +45,13 @@ public class ArticleResponse {
                 .sentimentLabel(article.getSentimentLabel())
                 .sentimentScore(article.getSentimentScore())
                 .tags(parsedTags)
+                .content(article.getContent())
+                .url(article.getUrl())
                 .registrationDate(article.getNewsDate())
                 .symbol(article.getSymbol())
                 .stockName(article.getStockName())
                 .industry(article.getIndustry())
+                .source(article.getMedia())
                 .build();
     }
 }

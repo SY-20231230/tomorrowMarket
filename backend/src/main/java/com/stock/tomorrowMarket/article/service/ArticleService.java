@@ -31,7 +31,7 @@ public class ArticleService {
     private final StockRepository stockRepository;
     private final SectorRepository sectorRepository;
 
-    public Page<ArticleResponse> getArticles(Long stockId, Long sectorId, String category, Pageable pageable) {
+    public Page<ArticleResponse> getArticles(Long stockId, Long sectorId, String category, String keyword, String sentimentType, Pageable pageable) {
         Specification<Article> spec = Specification.where(null);
 
         if (stockId != null) {
@@ -50,6 +50,14 @@ public class ArticleService {
             } else if ("시장".equals(category)) {
                 spec = spec.and(ArticleSpecification.isMarket());
             }
+        }
+
+        if (keyword != null && !keyword.isBlank()) {
+            spec = spec.and(ArticleSpecification.byKeyword(keyword));
+        }
+
+        if (sentimentType != null && !sentimentType.isBlank()) {
+            spec = spec.and(ArticleSpecification.bySentiment(sentimentType));
         }
 
         Page<Article> articles = articleRepository.findAll(spec, pageable);

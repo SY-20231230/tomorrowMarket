@@ -1,6 +1,7 @@
 package com.stock.tomorrowMarket.admin.dto;
 
 import com.stock.tomorrowMarket.stock.entity.Stock;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -11,6 +12,7 @@ public class AdminStockResponseDto {
     private String stockCode;
     private String name;
     private String marketType;
+    @JsonProperty("isActive")
     private boolean isActive;
 
     public static AdminStockResponseDto from(Stock stock) {
