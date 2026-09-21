@@ -21,6 +21,6 @@ class Settings(BaseSettings):
         # SQLAlchemy URL format for PyMySQL
         return f"mysql+pymysql://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
 
-    model_config = ConfigDict(env_file=".env", case_sensitive=True)
+    model_config = ConfigDict(env_file=".env", case_sensitive=True, extra="ignore")
 
 settings = Settings()

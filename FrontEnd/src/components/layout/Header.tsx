@@ -30,6 +30,8 @@ function Header() {
       console.error(e);
     } finally {
       localStorage.removeItem("isAuthenticated");
+      localStorage.removeItem("recentViews");
+      localStorage.removeItem("watchlistIds");
       sessionStorage.removeItem("isAuthenticated");
       window.dispatchEvent(new Event("authChange"));
       navigate("/");

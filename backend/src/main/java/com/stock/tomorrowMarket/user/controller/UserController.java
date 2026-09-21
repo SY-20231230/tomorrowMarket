@@ -59,4 +59,16 @@ public class UserController {
         userService.withdraw(userDetails.getUsersId());
         return ResponseEntity.ok(ApiResponse.success("회원 탈퇴 성공"));
     }
+
+    @Operation(summary = "내 AI 예측 기록 조회", description = "내가 요청한 AI 예측 기록 목록을 조회합니다.")
+    @GetMapping("/me/predictions")
+    public ResponseEntity<ApiResponse<Page<UserPredictionRequestResponse>>> getMyPredictionRequests(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestParam(required = false) RequestStatus status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<UserPredictionRequestResponse> response = userService.getMyPredictionRequests(userDetails.getUsersId(), status, pageable);
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
 }

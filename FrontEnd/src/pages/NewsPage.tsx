@@ -1,37 +1,54 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { 
-  PieChart, Pie, Cell, ResponsiveContainer, 
-  LineChart, Line, XAxis, YAxis, Tooltip
+import {
+  PieChart, Pie, Cell, ResponsiveContainer,
+  LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid
 } from "recharts";
-import { 
-  mockNews, 
-  sentimentStats, 
-  topKeywords 
-} from "../data/mockNewsData";
+import api from "../api/axios";
 import "./NewsPage.css";
 
-const COLORS = ["#10b981", "#64748b", "#ef4444"]; // 긍정, 중립, 부정
-const CATEGORIES = ["전체", "주요이슈", "시장", "산업", "기업", "정책", "경제지표"];
+const COLORS = ["#22c55e", "#64748b", "#ef4444"]; // 긍정, 중립, 부정
 const INDUSTRIES = ["모든 산업군", "반도체", "IT서비스", "2차전지", "바이오", "자동차", "부동산", "금융"];
 const SENTIMENTS = ["모든 감성", "긍정", "부정", "중립"];
+
+const SECTOR_MAP: Record<string, number> = {
+  "반도체": 1,
+  "IT서비스": 2,
+  "2차전지": 3,
+  "바이오": 4,
+  "자동차": 5,
+  "부동산": 6,
+  "금융": 7
+};
+
+const SENTIMENT_MAP: Record<string, string> = {
+  "긍정": "POSITIVE",
+  "부정": "NEGATIVE",
+  "중립": "NEUTRAL"
+};
 
 function NewsPage() {
   const navigate = useNavigate();
   // State Management
-  const [activeTab, setActiveTab] = useState("전체");
   const [selectedIndustry, setSelectedIndustry] = useState("모든 산업군");
   const [selectedSentiment, setSelectedSentiment] = useState("모든 감성");
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [sortOrder, setSortOrder] = useState("LATEST");
   const itemsPerPage = 4;
+
+  const [articles, setArticles] = useState<any[]>([]);
+  const [totalPages, setTotalPages] = useState(1);
+  const [statistics, setStatistics] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [allSectors, setAllSectors] = useState<any[]>([]);
 
   // 필터 초기화 함수
   const resetFilters = () => {
-    setActiveTab("전체");
     setSelectedIndustry("모든 산업군");
     setSelectedSentiment("모든 감성");
     setSearchQuery("");
+    setSortOrder("LATEST");
     setCurrentPage(1);
   };
 
@@ -41,238 +58,316 @@ function NewsPage() {
     setCurrentPage(1);
   };
 
-  // 통합 필터링 로직
-  const filteredNews = useMemo(() => {
-    return mockNews.filter(news => {
-      // 1. 카테고리 필터
-      const categoryMatch = activeTab === "전체" || news.category === activeTab || (activeTab === "주요이슈" && news.impact === "HIGH");
-      
-      // 2. 산업군 필터 (태그에 산업군 키워드가 포함되어 있는지 확인)
-      const industryMatch = selectedIndustry === "모든 산업군" || news.tags.includes(selectedIndustry);
-      
-      // 3. 감성 필터
-      const sentimentMap: Record<string, string> = { "긍정": "positive", "부정": "negative", "중립": "neutral" };
-      const sentimentMatch = selectedSentiment === "모든 감성" || news.sentiment === sentimentMap[selectedSentiment];
-      
-      // 4. 검색어 필터 (제목, 요약, 태그에서 검색)
-      const query = searchQuery.toLowerCase();
-      const searchMatch = !searchQuery || 
-        news.title.toLowerCase().includes(query) || 
-        news.summary.toLowerCase().includes(query) ||
-        news.tags.some(tag => tag.toLowerCase().includes(query));
-
-      return categoryMatch && industryMatch && sentimentMatch && searchMatch;
-    });
-  }, [activeTab, selectedIndustry, selectedSentiment, searchQuery]);
-
-  // 페이지네이션 로직
-  const totalPages = Math.ceil(filteredNews.length / itemsPerPage);
-  const currentNews = filteredNews.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
-
-  // 필터 변경 시 첫 페이지로 이동
+  // Fetch Sectors
   useEffect(() => {
-    setCurrentPage(1);
-  }, [activeTab, selectedIndustry, selectedSentiment, searchQuery]);
+    api.get("/sectors").then(res => setAllSectors(res.data.data || [])).catch(console.error);
+  }, []);
 
-  const pieData = [
-    { name: "긍정", value: sentimentStats.labels.positive },
-    { name: "중립", value: sentimentStats.labels.neutral },
-    { name: "부정", value: sentimentStats.labels.negative },
+  // Fetch Articles
+  useEffect(() => {
+    const fetchArticles = async () => {
+      setIsLoading(true);
+      try {
+        const params: any = {
+          page: currentPage - 1,
+          size: itemsPerPage,
+          sort: sortOrder
+        };
+
+        if (selectedIndustry !== "모든 산업군") {
+          const sector = allSectors.find(s => s.name === selectedIndustry || s.sectorName === selectedIndustry);
+          if (sector) params.sectorId = sector.sectorsId || sector.sectorId;
+        }
+        if (selectedSentiment !== "모든 감성" && SENTIMENT_MAP[selectedSentiment]) {
+          params.sentimentType = SENTIMENT_MAP[selectedSentiment];
+        }
+        if (searchQuery.trim() !== "") {
+          params.keyword = searchQuery.trim();
+        }
+
+        const res = await api.get("/articles", { params });
+        if (res.data && res.data.data) {
+          setArticles(res.data.data.content);
+          setTotalPages(res.data.data.totalPages || 1);
+        }
+      } catch (err) {
+        console.error("Failed to fetch articles:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchArticles();
+  }, [currentPage, selectedIndustry, selectedSentiment, searchQuery, sortOrder, allSectors]);
+
+  // Fetch Statistics
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const res = await api.get("/articles/sentiment/statistics");
+        if (res.data && res.data.data) {
+          setStatistics(res.data.data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch sentiment stats:", err);
+      }
+    };
+    fetchStats();
+  }, []);
+
+  const pieData = statistics ? [
+    { name: "긍정", value: statistics.pieChart.positive },
+    { name: "중립", value: statistics.pieChart.neutral },
+    { name: "부정", value: statistics.pieChart.negative },
+  ] : [
+    { name: "긍정", value: 0 },
+    { name: "중립", value: 0 },
+    { name: "부정", value: 0 },
   ];
+
+  const totalNewsCount = statistics ?
+    (statistics.pieChart.positive + statistics.pieChart.neutral + statistics.pieChart.negative) : 0;
+
+  const positivePercent = totalNewsCount > 0
+    ? Math.round((pieData[0].value / totalNewsCount) * 100) : 0;
+
+  // Format trend data for line chart
+  const trendChartData = statistics?.trendData ? statistics.trendData.map((d: any) => {
+    const dateObj = new Date(d.date);
+    return {
+      dateLabel: `${dateObj.getMonth() + 1}/${dateObj.getDate()}`,
+      score: d.averageScore
+    };
+  }) : [];
 
   return (
     <div className="news-page">
-      {/* 2. Page Header */}
       <header className="news-page-header">
         <div className="news-page-title">
           <h1>뉴스 모음</h1>
           <p>AI가 분석한 실시간 금융·주식 뉴스와 시장 인사이트를 확인하세요.</p>
         </div>
-        <div className="news-header-actions">
-          <div className="search-container">
-            <input 
-              type="text" 
-              className="search-input" 
-              placeholder="뉴스 검색 (키워드, 종목명)" 
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-            <span className="search-icon">🔍</span>
-          </div>
-          <select className="filter-select" style={{ minWidth: "120px" }}>
-            <option>최신순</option>
-            <option>과거순</option>
-            <option>감성점수순</option>
-          </select>
-        </div>
       </header>
 
-      {/* 3. Top Stats Row */}
+      {/* Top Stats Row (3 Columns) */}
       <div className="news-stats-row">
+        {/* Card 1: Today's Sentiment */}
         <div className="stats-card">
           <div className="card-title">오늘의 시장 감성 ℹ️</div>
-          <div className="sentiment-overview">
-            <div style={{ width: "120px", height: "120px", position: "relative" }}>
+          {totalNewsCount > 0 ? (
+            <div className="sentiment-overview">
+              <div style={{ width: "120px", height: "120px", position: "relative" }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie data={pieData} cx="50%" cy="50%" innerRadius={40} outerRadius={55} paddingAngle={5} dataKey="value">
+                      {pieData.map((_, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}
+                    </Pie>
+                  </PieChart>
+                </ResponsiveContainer>
+                <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", textAlign: "center" }}>
+                  <div style={{ fontSize: "20px", fontWeight: 900 }}>{positivePercent}%</div>
+                  <div style={{ fontSize: "10px", color: "#22c55e", fontWeight: 700 }}>긍정적</div>
+                </div>
+              </div>
+              <div className="sentiment-pie-info">
+                <div className="pie-label"><span style={{ color: "#22c55e" }}>●</span> 긍정 {pieData[0].value}건</div>
+                <div className="pie-label"><span style={{ color: "#64748b" }}>●</span> 중립 {pieData[1].value}건</div>
+                <div className="pie-label"><span style={{ color: "#ef4444" }}>●</span> 부정 {pieData[2].value}건</div>
+              </div>
+            </div>
+          ) : (
+            <div className="premium-empty-state">
+              <div className="icon">📊</div>
+              <div>감성 분석 데이터가 없습니다</div>
+            </div>
+          )}
+        </div>
+
+        {/* Card 2: Trend Chart */}
+        <div className="stats-card">
+          <div className="card-title">최근 30일 시장 감성 트렌드</div>
+          <div style={{ width: "100%", height: "130px", marginTop: "10px" }}>
+            {trendChartData.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie data={pieData} cx="50%" cy="50%" innerRadius={40} outerRadius={55} paddingAngle={5} dataKey="value">
-                    {pieData.map((_, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}
-                  </Pie>
-                </PieChart>
+                <LineChart data={trendChartData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                  <XAxis dataKey="dateLabel" stroke="var(--text-soft)" fontSize={11} tickLine={false} axisLine={false} />
+                  <YAxis hide domain={[0, 100]} />
+                  <Tooltip 
+                    contentStyle={{ background: "#1e293b", border: "none", borderRadius: "8px", color: "#fff" }}
+                    itemStyle={{ color: "var(--cyan)" }}
+                    formatter={(value: number) => [`${value.toFixed(1)}점`, "평균 감성"]}
+                  />
+                  <Line type="monotone" dataKey="score" stroke="var(--cyan)" strokeWidth={3} dot={false} activeDot={{ r: 6 }} />
+                </LineChart>
               </ResponsiveContainer>
-              <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", textAlign: "center" }}>
-                <div style={{ fontSize: "20px", fontWeight: 900 }}>68%</div>
-                <div style={{ fontSize: "10px", color: "#10b981", fontWeight: 700 }}>긍정적</div>
+            ) : (
+              <div className="premium-empty-state">
+                <div className="icon">📈</div>
+                <div>트렌드 데이터가 없습니다</div>
               </div>
-            </div>
-            <div className="sentiment-pie-info">
-              <div className="pie-label"><span style={{ color: "#10b981" }}>●</span> 긍정 68%</div>
-              <div className="pie-label"><span style={{ color: "#64748b" }}>●</span> 중립 22%</div>
-              <div className="pie-label"><span style={{ color: "#ef4444" }}>●</span> 부정 10%</div>
-            </div>
+            )}
           </div>
         </div>
 
+        {/* Card 3: Keyword Tag Cloud */}
         <div className="stats-card">
-          <div className="card-title">주요 감성 지수 ℹ️</div>
-          <div className="indices-list">
-            {sentimentStats.indices.map(idx => (
-              <div className="index-row" key={idx.name}>
-                <span className="index-name">🌐 {idx.name}</span>
-                <span className="index-score">{idx.score}</span>
-                <span className={`index-change ${idx.change >= 0 ? "up" : "down"}`}>{idx.change >= 0 ? `▲ ${idx.change}` : `▼ ${Math.abs(idx.change)}`}</span>
+          <div className="card-title">핵심 키워드 태그 클라우드</div>
+          <div style={{ width: "100%", height: "130px", marginTop: "10px", display: "flex", flexWrap: "wrap", gap: "8px", alignContent: "flex-start" }}>
+            {statistics?.relatedKeywords?.length > 0 ? (
+              statistics.relatedKeywords.map((kw: string) => (
+                <div 
+                  key={kw} 
+                  onClick={() => handleTagClick(kw)} 
+                  style={{ 
+                    cursor: "pointer", 
+                    background: "rgba(56, 189, 248, 0.1)", 
+                    color: "var(--cyan)", 
+                    padding: "6px 12px", 
+                    borderRadius: "20px", 
+                    fontSize: "13px",
+                    fontWeight: "bold",
+                    transition: "0.2s"
+                  }}
+                  onMouseOver={(e) => e.currentTarget.style.background = "rgba(56, 189, 248, 0.2)"}
+                  onMouseOut={(e) => e.currentTarget.style.background = "rgba(56, 189, 248, 0.1)"}
+                >
+                  #{kw}
+                </div>
+              ))
+            ) : (
+              <div className="premium-empty-state" style={{ width: "100%" }}>
+                <div className="icon">🏷️</div>
+                <div>키워드 데이터가 없습니다</div>
               </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="stats-card">
-          <div className="card-title">오늘의 주요 이슈</div>
-          <div className="issue-list" style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-            {["AI 반도체 수요 증가 기대감 지속", "미국 금리 인하 기대감 확대", "2차전지 관련주 강세", "원/달러 환율 소폭 하락", "중국 경기 부양책 기대"].map((issue, i) => (
-              <div key={i} style={{ fontSize: "13px", display: "flex", gap: "12px", alignItems: "center" }}>
-                <span style={{ color: "#475569", fontWeight: 900, fontSize: "11px" }}>0{i+1}</span>
-                <span style={{ fontWeight: 700, color: "#cbd5e1" }}>{issue}</span>
-              </div>
-            ))}
+            )}
           </div>
         </div>
       </div>
 
-      {/* 4. Main Content Layout (Filter Bar moved inside) */}
       <div className="news-main-layout">
         <div className="news-left-column">
           <div className="news-filter-bar">
-            <div className="filter-tabs">
-              {CATEGORIES.map(tab => (
-                <div key={tab} className={`filter-tab ${activeTab === tab ? "active" : ""}`} onClick={() => setActiveTab(tab)}>{tab}</div>
-              ))}
+            {/* Unified Control Panel */}
+            <div className="search-container" style={{ minWidth: "260px" }}>
+              <input
+                type="text"
+                className="search-input"
+                placeholder="뉴스 검색 (키워드, 종목명)"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && setCurrentPage(1)}
+              />
+              <span className="search-icon">🔍</span>
             </div>
+            
             <div className="filter-selects">
-              <select className="filter-select" value={selectedIndustry} onChange={(e) => setSelectedIndustry(e.target.value)}>
-                {INDUSTRIES.map(ind => <option key={ind} value={ind}>{ind}</option>)}
+              <select className="filter-select" value={selectedIndustry} onChange={(e) => { setSelectedIndustry(e.target.value); setCurrentPage(1); }}>
+                <option value="모든 산업군">모든 산업군</option>
+                {allSectors.map(s => {
+                  const name = s.name || s.sectorName;
+                  return <option key={name} value={name}>{name}</option>;
+                })}
               </select>
-              <select className="filter-select" value={selectedSentiment} onChange={(e) => setSelectedSentiment(e.target.value)}>
+              <select className="filter-select" value={selectedSentiment} onChange={(e) => { setSelectedSentiment(e.target.value); setCurrentPage(1); }}>
                 {SENTIMENTS.map(sent => <option key={sent} value={sent}>{sent}</option>)}
+              </select>
+              <select
+                className="filter-select"
+                style={{ minWidth: "120px" }}
+                value={sortOrder}
+                onChange={(e) => { setSortOrder(e.target.value); setCurrentPage(1); }}
+              >
+                <option value="LATEST">최신순</option>
+                <option value="OLDEST">과거순</option>
+                <option value="SENTIMENT_DESC">긍정적인순</option>
+                <option value="SENTIMENT_ASC">부정적인순</option>
               </select>
               <button className="filter-reset-btn" onClick={resetFilters}>🔄 필터 초기화</button>
             </div>
           </div>
 
           <section className="news-list">
-          {currentNews.length > 0 ? (
-            currentNews.map(news => (
-              <div className="news-card" key={news.id} onClick={() => navigate(`/news/${news.id}`)}>
-                <img src={news.thumbnail} alt={news.title} className="news-thumbnail" />
-                <div className="news-content">
-                  <div className="news-title">
-                    {news.impact === "HIGH" && <span style={{ background: "#ef4444", color: "#fff", fontSize: "10px", padding: "2px 6px", borderRadius: "4px", marginRight: "8px" }}>HOT</span>}
-                    {news.title}
-                  </div>
-                  <p className="news-summary">{news.summary}</p>
-                  <div className="news-meta">
-                    <div className="meta-left">
-                      <span>{news.source}</span>
-                      <span>|</span>
-                      <span>{news.time}</span>
-                      <div className="news-tags">
-                        {news.tags.map(tag => (
-                          <span key={tag} className="news-tag" onClick={(e) => { e.stopPropagation(); handleTagClick(tag); }}>#{tag}</span>
-                        ))}
+            {isLoading ? (
+              <div style={{ textAlign: "center", padding: "80px", color: "#64748b" }}>뉴스를 불러오는 중...</div>
+            ) : articles.length > 0 ? (
+              articles.map(news => {
+                const isHot = news.sentimentScore >= 80 || news.sentimentScore <= 20;
+                const sentimentLabelStr = news.sentimentLabel === "POSITIVE" ? "긍정" : news.sentimentLabel === "NEGATIVE" ? "부정" : "중립";
+
+                return (
+                  <div className="news-card" key={news.articleId} onClick={() => navigate(`/news/${news.articleId}`)}>
+                    {/* Default thumbnail if not available from backend */}
+                    <img src="https://images.unsplash.com/photo-1590283603385-17ffb3a7f29f?auto=format&fit=crop&q=80&w=200" alt={news.title} className="news-thumbnail" />
+                    <div className="news-content">
+                      <div className="news-title">
+                        {isHot && <span style={{ background: "#ef4444", color: "#fff", fontSize: "10px", padding: "2px 6px", borderRadius: "4px", marginRight: "8px" }}>HOT</span>}
+                        {news.title}
+                      </div>
+                      <p className="news-summary">{news.summary}</p>
+                      <div className="news-meta">
+                        <div className="meta-left">
+                          <span>{news.source || "내일장 뉴스"}</span>
+                          <span>|</span>
+                          <span>{new Date(news.registrationDate).toLocaleDateString()}</span>
+                          <div className="news-tags">
+                            {news.tags && news.tags.map((tag: string) => (
+                              <span key={tag} className="news-tag" onClick={(e) => { e.stopPropagation(); handleTagClick(tag); }}>#{tag}</span>
+                            ))}
+                          </div>
+                        </div>
+                        <div className="sentiment-badge">
+                          <div className="badge-score" style={{
+                            background: news.sentimentLabel === "POSITIVE" ? "rgba(34, 197, 94, 0.1)" : news.sentimentLabel === "NEGATIVE" ? "rgba(239, 68, 68, 0.1)" : "rgba(100, 116, 139, 0.1)",
+                            color: news.sentimentLabel === "POSITIVE" ? "#22c55e" : news.sentimentLabel === "NEGATIVE" ? "#ef4444" : "#94a3b8"
+                          }}>
+                            {sentimentLabelStr} 감성점수 {news.sentimentScore}
+                          </div>
+                          {isHot && <div className="badge-impact">영향도 HIGH</div>}
+                        </div>
                       </div>
                     </div>
-                    <div className="sentiment-badge">
-                      <div className="badge-score" style={{ 
-                        background: news.sentiment === "positive" ? "rgba(16, 185, 129, 0.1)" : news.sentiment === "negative" ? "rgba(239, 68, 68, 0.1)" : "rgba(100, 116, 139, 0.1)",
-                        color: news.sentiment === "positive" ? "#10b981" : news.sentiment === "negative" ? "#ef4444" : "#94a3b8"
-                      }}>
-                        {news.sentiment === "positive" ? "긍정" : news.sentiment === "negative" ? "부정" : "중립"} 감성점수 {news.sentimentScore}
-                      </div>
-                      <div className="badge-impact">영향도 {news.impact}</div>
-                    </div>
                   </div>
-                </div>
+                );
+              })
+            ) : (
+              <div style={{ textAlign: "center", padding: "80px", color: "#64748b" }}>검색 결과가 없습니다.</div>
+            )}
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="pagination">
+                <button className="page-btn" disabled={currentPage === 1} onClick={() => setCurrentPage(p => p - 1)}>{"<"}</button>
+
+                {/* Show only up to 10 page numbers around the current page */}
+                {(() => {
+                  let startPage = Math.max(1, currentPage - 4);
+                  let endPage = Math.min(totalPages, startPage + 9);
+
+                  if (endPage - startPage < 9) {
+                    startPage = Math.max(1, endPage - 9);
+                  }
+
+                  const pages = [];
+                  for (let i = startPage; i <= endPage; i++) {
+                    pages.push(
+                      <button
+                        key={i}
+                        className={`page-btn ${currentPage === i ? "active" : ""}`}
+                        onClick={() => setCurrentPage(i)}
+                      >
+                        {i}
+                      </button>
+                    );
+                  }
+                  return pages;
+                })()}
+
+                <button className="page-btn" disabled={currentPage === totalPages} onClick={() => setCurrentPage(p => p + 1)}>{">"}</button>
               </div>
-            ))
-          ) : (
-            <div style={{ textAlign: "center", padding: "80px", color: "#64748b" }}>검색 결과가 없습니다.</div>
-          )}
+            )}
+          </section>
+        </div>
 
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="pagination">
-              <button className="page-btn" disabled={currentPage === 1} onClick={() => setCurrentPage(p => p - 1)}>{"<"}</button>
-              {Array.from({ length: totalPages }, (_, i) => (
-                <button 
-                  key={i + 1} 
-                  className={`page-btn ${currentPage === i + 1 ? "active" : ""}`}
-                  onClick={() => setCurrentPage(i + 1)}
-                >
-                  {i + 1}
-                </button>
-              ))}
-              <button className="page-btn" disabled={currentPage === totalPages} onClick={() => setCurrentPage(p => p + 1)}>{">"}</button>
-            </div>
-          )}
-        </section>
-      </div>
-
-      {/* Sidebar Charts */}
-        <aside className="news-sidebar">
-          <div className="sidebar-section">
-            <div className="section-header"><span className="section-title">산업군 이슈 TOP 5</span></div>
-            <div className="keyword-list">
-              {[{ name: "반도체", type: "긍정", val: "12%" }, { name: "IT서비스", type: "긍정", val: "9%" }, { name: "2차전지", type: "긍정", val: "7%" }, { name: "바이오", type: "중립", val: "0%" }, { name: "자동차", type: "부정", val: "5%" }].map(item => (
-                <div className="keyword-item" key={item.name}>
-                  <span className="kw-name">{item.name}</span>
-                  <span style={{ fontSize: "11px", padding: "2px 6px", borderRadius: "4px", background: item.type === "긍정" ? "rgba(16, 185, 129, 0.1)" : item.type === "중립" ? "rgba(251, 191, 36, 0.1)" : "rgba(239, 68, 68, 0.1)", color: item.type === "긍정" ? "#10b981" : item.type === "중립" ? "#fbbf24" : "#ef4444" }}>{item.type}</span>
-                  <span className={`kw-change ${item.type === "긍정" ? "up" : item.type === "부정" ? "down" : ""}`}>{item.type === "긍정" ? `▲ ${item.val}` : item.type === "부정" ? `▼ ${item.val}` : "0%"}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="sidebar-section">
-            <div className="section-header"><span className="section-title">감성 분포 차트 ℹ️</span></div>
-            <div style={{ width: "100%", height: "180px" }}>
-              <ResponsiveContainer width="100%" height="100%"><PieChart><Pie data={pieData} cx="50%" cy="50%" innerRadius={50} outerRadius={70} paddingAngle={5} dataKey="value">{pieData.map((_, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}</Pie></PieChart></ResponsiveContainer>
-              <div style={{ textAlign: "center", marginTop: "-100px", marginBottom: "60px" }}><div style={{ fontSize: "11px", color: "#94a3b8" }}>전체 뉴스</div><div style={{ fontSize: "18px", fontWeight: 900 }}>1,248건</div></div>
-            </div>
-          </div>
-
-          <div className="sidebar-section">
-            <div className="section-header"><span className="section-title">실시간 인기 키워드</span></div>
-            <div className="keyword-list">
-              {topKeywords.map(kw => (
-                <div className="keyword-item" key={kw.name} onClick={() => handleTagClick(kw.name)} style={{ cursor: "pointer" }}>
-                  <span className="kw-rank">{kw.rank}</span>
-                  <span className="kw-name">{kw.name}</span>
-                  <span className={`kw-change ${kw.change >= 0 ? "up" : "down"}`}>{kw.change >= 0 ? `▲ ${kw.change}` : `▼ ${Math.abs(kw.change)}`}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </aside>
       </div>
     </div>
   );

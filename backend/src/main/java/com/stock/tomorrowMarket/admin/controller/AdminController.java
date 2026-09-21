@@ -82,4 +82,11 @@ public class AdminController {
     public ApiResponse<Page<PredictionRequestResponseDto>> getFailedRequests(Pageable pageable) {
         return ApiResponse.success(adminService.getFailedRequests(pageable));
     }
+
+    // H-008: 관리자 예측 모델 강제 구동
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("/predictions/batch/run")
+    public ApiResponse<String> runPredictionBatch() {
+        return ApiResponse.success(adminService.runPredictionBatch());
+    }
 }
