@@ -20,25 +20,37 @@ public class PredictionScheduler {
     // Run every day at 18:00 (after market closes and sentiment data is collected)
     // 0 0 18 * * ? (cron format)
     @Scheduled(cron = "0 0 18 * * ?")
-    public void runDailyPredictions() {
+    public void runScheduledPredictions() {
         LocalDate today = LocalDate.now();
-        if (!tradingCalendarService.isTradingDay(today)) {
-            log.info("Today ({}) is not a trading day. Skipping daily batch predictions.", today);
-            return;
+        
+        // 1. Check Weekly Short Prediction
+        if (tradingCalendarService.isFirstTradingDayOfWeek(today)) {
+            log.info("Today ({}) is the first trading day of the week. Starting WEEKLY_SHORT batch.", today);
+            executePredictionBatch("WEEKLY_SHORT", today);
         }
 
-        log.info("Starting Daily Batch Predictions Scheduler");
+        // 2. Check Monthly Long Prediction
+        if (tradingCalendarService.isFirstTradingDayOfMonth(today)) {
+            log.info("Today ({}) is the first trading day of the month. Starting MONTHLY_LONG batch.", today);
+            executePredictionBatch("MONTHLY_LONG", today);
+        }
+        
+        if (!tradingCalendarService.isFirstTradingDayOfWeek(today) && !tradingCalendarService.isFirstTradingDayOfMonth(today)) {
+            log.info("Today ({}) is not the first trading day of the week or month. Skipping predictions.", today);
+        }
+    }
+
+    private void executePredictionBatch(String runType, LocalDate baseDate) {
         try {
             BatchExecutionRequestDto request = BatchExecutionRequestDto.builder()
-                    .runType("ALL") // Request both SHORT and LONG
-                    .scheduledBaseDate(LocalDate.now())
-                    // no stockIds -> runs for all active stocks
+                    .runType(runType)
+                    .scheduledBaseDate(baseDate)
                     .build();
 
             batchService.executeBatch(request);
-            log.info("Daily Batch Predictions Scheduler completed successfully.");
+            log.info("Batch Prediction ({}) completed successfully.", runType);
         } catch (Exception e) {
-            log.error("Failed to run Daily Batch Predictions: ", e);
+            log.error("Failed to run Batch Prediction ({}): ", runType, e);
         }
     }
 }

@@ -31,8 +31,8 @@ public class AiPredictionClient {
 
     private final RestTemplate restTemplate;
 
-    public AiPredictionClient() {
-        this.restTemplate = new RestTemplate();
+    public AiPredictionClient(org.springframework.boot.web.client.RestTemplateBuilder builder) {
+        this.restTemplate = builder.build();
     }
 
     public List<Prediction> requestBatchPredictions(List<Stock> stocks, String runType, PredictionRun predictionRun) {
