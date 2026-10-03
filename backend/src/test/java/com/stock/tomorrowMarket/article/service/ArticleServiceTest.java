@@ -13,6 +13,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
+import com.stock.tomorrowMarket.stock.repository.StockRepository;
+import com.stock.tomorrowMarket.sector.repository.SectorRepository;
+import com.stock.tomorrowMarket.stock.entity.Stock;
 
 import java.util.Collections;
 import java.util.List;
@@ -27,6 +30,10 @@ class ArticleServiceTest {
 
     @Mock
     private ArticleRepository articleRepository;
+    @Mock
+    private StockRepository stockRepository;
+    @Mock
+    private SectorRepository sectorRepository;
 
     @InjectMocks
     private ArticleService articleService;
@@ -45,11 +52,14 @@ class ArticleServiceTest {
         
         Page<Article> articlePage = new PageImpl<>(List.of(article));
         
-        when(articleRepository.findAll(any(Specification.class), any(PageRequest.class)))
+        Stock stock = Stock.builder().stockCode("005930").name("삼성전자").build();
+        when(stockRepository.findById(1L)).thenReturn(java.util.Optional.of(stock));
+        
+        when(articleRepository.findAll(any(Specification.class), any(org.springframework.data.domain.Pageable.class)))
                 .thenReturn(articlePage);
 
         // when
-        Page<ArticleResponse> result = articleService.getArticles(1L, null, null, PageRequest.of(0, 10));
+        Page<ArticleResponse> result = articleService.getArticles(1L, null, null, null, null, PageRequest.of(0, 10));
 
         // then
         assertThat(result).isNotNull();
