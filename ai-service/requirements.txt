@@ -25,3 +25,4 @@ loguru
 joblib
 
 torchvision==0.18.1
+setuptools
