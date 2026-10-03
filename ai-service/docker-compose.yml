@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  naeiljang-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    image: naeiljang-api:latest
+    container_name: naeiljang-api
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./models:/app/models
+      # 필요 시 환경변수 파일 연동
+      # - .env:/app/.env
+    env_file:
+      - .env
+    restart: unless-stopped
+
+  naeiljang-sentiment-batch:
+    build:
+      context: .
+      dockerfile: Dockerfile.sentiment
+    image: naeiljang-sentiment-batch:latest
+    container_name: naeiljang-sentiment-batch
+    # 배치 서버이므로 ports 개방 필요 없음
+    volumes:
+      - ./models:/app/models
+    env_file:
+      - .env
+    # docker-compose up 시 바로 실행 후 종료됨 (백그라운드 유지 안 함)
+    restart: "no"

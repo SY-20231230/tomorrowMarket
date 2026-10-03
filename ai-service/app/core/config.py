@@ -10,8 +10,8 @@ class Settings(BaseSettings):
     DB_NAME: str = "tomorrow_market"
     
     # NCP API
-    NCP_CLIENT_ID: str
-    NCP_CLIENT_SECRET: str
+    NCP_CLIENT_ID: str = ""
+    NCP_CLIENT_SECRET: str = ""
     
     # Webhook
     BACKEND_WEBHOOK_URL: str = "http://localhost:8080/api/batch/crawling-done"
