@@ -11,6 +11,7 @@ __pycache__/
 
 *.properties
 !BackEnd/src/main/resources/application.properties
+!gradle-wrapper.properties
 
 # Package Files #
 *.jar
