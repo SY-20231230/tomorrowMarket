@@ -14,7 +14,7 @@ FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 
 # 빌드된 JAR 파일만 실행 환경으로 복사
-COPY --from=builder /app/build/libs/tomorrowMarket.jar app.jar
+COPY --from=builder /app/build/libs/*.jar app.jar
 
 # 스프링 부트 포트 노출
 EXPOSE 8080
