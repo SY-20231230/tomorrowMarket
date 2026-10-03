@@ -19,5 +19,5 @@ COPY --from=builder /app/build/libs/*.jar app.jar
 # 스프링 부트 포트 노출
 EXPOSE 8080
 
-# 컨테이너 시작 시 JAR 파일 실행
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# Render 포트 바인딩 (환경변수 PORT를 우선 적용, 없으면 8080)
+ENTRYPOINT ["sh", "-c", "java -jar app.jar --server.port=${PORT:-8080}"]
