@@ -40,6 +40,8 @@ class AuthServiceTest {
     private JwtProvider jwtProvider;
     @Mock
     private JavaMailSender mailSender;
+    @Mock
+    private EmailService emailService;
 
     @InjectMocks
     private AuthService authService;
@@ -48,7 +50,7 @@ class AuthServiceTest {
     @DisplayName("회원가입 - 정상 처리")
     void signup_success() {
         // given
-        SignUpRequest request = new SignUpRequest("test@test.com", "홍길동", "password123", LocalDate.of(1990, 1, 1));
+        SignUpRequest request = new SignUpRequest("test@test.com", "홍길동", "password123!", LocalDate.of(1990, 1, 1));
         when(usersRepository.existsByEmail(anyString())).thenReturn(false);
         when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
 
@@ -63,7 +65,7 @@ class AuthServiceTest {
     @DisplayName("회원가입 - 이메일 중복 시 예외 발생")
     void signup_duplicateEmail() {
         // given
-        SignUpRequest request = new SignUpRequest("test@test.com", "홍길동", "password123", LocalDate.of(1990, 1, 1));
+        SignUpRequest request = new SignUpRequest("test@test.com", "홍길동", "password123!", LocalDate.of(1990, 1, 1));
         when(usersRepository.existsByEmail(anyString())).thenReturn(true);
 
         // when & then
