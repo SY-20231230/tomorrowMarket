@@ -15,6 +15,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.security.test.context.support.WithMockUser;
 
 import java.time.LocalDate;
 
@@ -41,7 +42,7 @@ class AuthControllerTest {
     @Test
     @DisplayName("회원가입 성공 시 200 반환 및 성공 응답 구조(ApiResponse) 확인")
     void signup_Success() throws Exception {
-        SignUpRequest request = new SignUpRequest("test@test.com", "Password123!", "홍길동", LocalDate.of(1990, 1, 1));
+        SignUpRequest request = new SignUpRequest("test@test.com", "홍길동", "Password123!", LocalDate.of(1990, 1, 1));
 
         mockMvc.perform(post("/api/auth/signup")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -73,6 +74,7 @@ class AuthControllerTest {
     }
 
     @Test
+    @WithMockUser
     @DisplayName("로그아웃 성공 시 쿠키 Max-Age가 0으로 초기화되는지 확인")
     void logout_Success() throws Exception {
         mockMvc.perform(post("/api/auth/logout")

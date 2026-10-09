@@ -55,7 +55,7 @@ public class AuthController {
                 ResponseCookie accessCookie = ResponseCookie.from("accessToken", response.accessToken())
                                 .httpOnly(true)
                                 .secure(true)
-                                .sameSite("Lax")
+                                .sameSite("None")
                                 .path("/")
                                 .maxAge(keep ? 3600 : -1) // 세션 쿠키 또는 1시간
                                 .build();
@@ -63,7 +63,7 @@ public class AuthController {
                 ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", response.refreshToken())
                                 .httpOnly(true)
                                 .secure(true)
-                                .sameSite("Lax")
+                                .sameSite("None")
                                 .path("/")
                                 .maxAge(keep ? 14 * 24 * 3600 : -1) // 세션 쿠키 또는 14일
                                 .build();
@@ -109,7 +109,7 @@ public class AuthController {
                 ResponseCookie accessCookie = ResponseCookie.from("accessToken", response.accessToken())
                                 .httpOnly(true)
                                 .secure(true)
-                                .sameSite("Lax")
+                                .sameSite("None")
                                 .path("/")
                                 .maxAge(3600) // Access Token은 갱신 시점으로부터 1시간 (기존 세션 유지 여부는 refreshToken의 수명에 달려있음)
                                 .build();
@@ -135,7 +135,7 @@ public class AuthController {
                 ResponseCookie accessCookie = ResponseCookie.from("accessToken", "")
                                 .httpOnly(true)
                                 .secure(true)
-                                .sameSite("Lax")
+                                .sameSite("None")
                                 .path("/")
                                 .maxAge(0)
                                 .build();
@@ -143,7 +143,7 @@ public class AuthController {
                 ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", "")
                                 .httpOnly(true)
                                 .secure(true)
-                                .sameSite("Lax")
+                                .sameSite("None")
                                 .path("/")
                                 .maxAge(0)
                                 .build();
