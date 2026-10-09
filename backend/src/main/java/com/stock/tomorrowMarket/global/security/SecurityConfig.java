@@ -9,6 +9,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsUtils;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -27,7 +28,7 @@ public class SecurityConfig {
 
     private final JwtProvider jwtProvider;
 
-    @Value("${app.cors-allowed-origins:http://localhost:*,https://tomorrow-market-rahl-eight.vercel.app,https://tomorrowmarket.onrender.com}")
+    @Value("${app.cors-allowed-origins:http://localhost:*,https://tomorrow-market-rahl-eight.vercel.app,https://tomorrowmarket.onrender.com,http://localhost:3000}")
     private String corsAllowedOrigins;
 
     @Bean
@@ -39,6 +40,7 @@ public class SecurityConfig {
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(CorsUtils::isPreFlightRequest).permitAll()
                         .requestMatchers("/api/auth/logout").authenticated()
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/batch/crawling-done").permitAll()
