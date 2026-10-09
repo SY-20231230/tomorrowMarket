@@ -27,7 +27,7 @@ public class SecurityConfig {
 
     private final JwtProvider jwtProvider;
 
-    @Value("${app.cors-allowed-origins:http://localhost:*,https://tomorrow-market-rahl-eight.vercel.app,https://tomorrowmarket.onrender.com,http://localhost:3000}")
+    @Value("${app.cors-allowed-origins:http://localhost:*,https://tomorrow-market-rahl-eight.vercel.app,https://tomorrowmarket.onrender.com}")
     private String corsAllowedOrigins;
 
     @Bean
