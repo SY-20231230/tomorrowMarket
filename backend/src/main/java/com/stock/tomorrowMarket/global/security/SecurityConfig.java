@@ -27,7 +27,7 @@ public class SecurityConfig {
 
     private final JwtProvider jwtProvider;
 
-    @Value("${app.cors-allowed-origins:http://localhost:*}")
+    @Value("${app.cors-allowed-origins:http://localhost:*,https://tomorrow-market-rahl-eight.vercel.app,https://tomorrowmarket.onrender.com,http://localhost:3000}")
     private String corsAllowedOrigins;
 
     @Bean
@@ -44,13 +44,12 @@ public class SecurityConfig {
                         .requestMatchers("/api/batch/crawling-done").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/**").authenticated()
-                        .anyRequest().permitAll()
-                )
+                        .anyRequest().permitAll())
                 .exceptionHandling(exceptions -> exceptions
                         .authenticationEntryPoint((request, response, authException) -> {
-                            response.sendError(jakarta.servlet.http.HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
-                        })
-                )
+                            response.sendError(jakarta.servlet.http.HttpServletResponse.SC_UNAUTHORIZED,
+                                    "Unauthorized");
+                        }))
                 .addFilterBefore(new JwtAuthenticationFilter(jwtProvider), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
