@@ -50,7 +50,9 @@ function StockDetailPage() {
         const [detailRes, historyRes, predictionRes, articleRes, watchlistRes] = await Promise.all([
           api.get(`/stocks/${id}`),
           api.get(`/stocks/${id}/history`).catch(() => ({ data: { data: [] } })),
-          api.get(`/predictions/stocks/${id}/latest`).catch(() => null),
+          api.get(`/predictions/stocks/${id}/latest`).catch(() => 
+            api.get(`/predictions/stocks/${id}/reanalysis/result`).catch(() => null)
+          ),
           api.get(`/articles/stocks/${id}?size=3`).catch(() => null),
           api.get(`/watchlists`).catch(() => ({ data: { data: [] } }))
         ]);
@@ -94,10 +96,10 @@ function StockDetailPage() {
         if (predictionRes?.data?.data) {
           const pd = predictionRes.data.data;
           setPredictions([{
-            horizon: `단기 (${pd.predictionPeriod}일)`,
-            predictedReturnRate: pd.predictedReturnRate,
-            predictedDirection: pd.predictedDirection,
-            opinion: `AI가 분석한 단기 방향성은 ${pd.predictedDirection === 'UP' ? '상승' : '하락'}입니다.`
+            horizon: `단기 (${pd.predictionPeriod || 7}일)`,
+            predictedReturnRate: Number(pd.predictedReturnRate || 0),
+            predictedDirection: pd.predictedDirection || "UP",
+            opinion: `AI가 분석한 ${pd.predictionPeriod ? pd.predictionPeriod + '일' : '단기'} 방향성은 ${pd.predictedDirection === 'UP' ? '상승' : '하락'}입니다.`
           }]);
         }
         if (articleRes?.data?.data?.content) {
@@ -116,13 +118,33 @@ function StockDetailPage() {
     }
   }, [id]);
 
-  const handleReanalyze = () => {
+  const handleReanalyze = async () => {
     setIsReanalyzing(true);
-    // Simulate API call for re-analysis
-    setTimeout(() => {
+    try {
+      // 1. 사용자 On-demand AI 재분석 요청 (백엔드 -> AI 모델 추론 및 DB 저장)
+      await api.post(`/predictions/stocks/${id}/reanalysis`);
+
+      // 2. DB에 저장된 최신 재분석 결과 조회
+      const resultRes = await api.get(`/predictions/stocks/${id}/reanalysis/result`);
+      if (resultRes.data?.data) {
+        const pd = resultRes.data.data;
+        setPredictions([{
+          horizon: `단기 (${pd.predictionPeriod || 7}일)`,
+          predictedReturnRate: Number(pd.predictedReturnRate || 0),
+          predictedDirection: pd.predictedDirection || "UP",
+          opinion: `AI가 분석한 ${pd.predictionPeriod ? pd.predictionPeriod + '일' : '단기'} 방향성은 ${pd.predictedDirection === 'UP' ? '상승' : '하락'}입니다.`
+        }]);
+        alert("최신 시장 및 감성 데이터를 반영하여 AI 재분석이 완료되었습니다.");
+      } else {
+        alert("재분석 요청은 완료되었으나 결과를 불러오지 못했습니다.");
+      }
+    } catch (error: any) {
+      console.error("AI 재분석 실패:", error);
+      const errMsg = error.response?.data?.message || "AI 재분석 요청에 실패했습니다. 잠시 후 다시 시도해주세요.";
+      alert(errMsg);
+    } finally {
       setIsReanalyzing(false);
-      alert("최신 데이터를 반영하여 AI 재분석이 완료되었습니다.");
-    }, 2000);
+    }
   };
 
   const toggleFavorite = async () => {
