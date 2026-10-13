@@ -94,13 +94,14 @@ function StockDetailPage() {
           setHistory(formattedHistory);
         }
         if (predictionRes?.data?.data) {
-          const pd = predictionRes.data.data;
-          setPredictions([{
-            horizon: `단기 (${pd.predictionPeriod || 7}일)`,
+          const rawData = predictionRes.data.data;
+          const list = Array.isArray(rawData) ? rawData : [rawData];
+          setPredictions(list.map((pd: any) => ({
+            horizon: pd.predictionPeriod === 20 ? "중장기 (20일)" : `단기 (${pd.predictionPeriod || 7}일)`,
             predictedReturnRate: Number(pd.predictedReturnRate || 0),
             predictedDirection: pd.predictedDirection || "UP",
-            opinion: `AI가 분석한 ${pd.predictionPeriod ? pd.predictionPeriod + '일' : '단기'} 방향성은 ${pd.predictedDirection === 'UP' ? '상승' : '하락'}입니다.`
-          }]);
+            opinion: `AI가 분석한 ${pd.predictionPeriod === 20 ? '20일 중장기' : (pd.predictionPeriod ? pd.predictionPeriod + '일' : '단기')} 방향성은 ${pd.predictedDirection === 'UP' ? '상승' : '하락'}입니다.`
+          })));
         }
         if (articleRes?.data?.data?.content) {
           setArticles(articleRes.data.data.content);
@@ -124,16 +125,17 @@ function StockDetailPage() {
       // 1. 사용자 On-demand AI 재분석 요청 (백엔드 -> AI 모델 추론 및 DB 저장)
       await api.post(`/predictions/stocks/${id}/reanalysis`);
 
-      // 2. DB에 저장된 최신 재분석 결과 조회
+      // 2. DB에 저장된 최신 재분석 결과 조회 (단기 7일, 중장기 20일)
       const resultRes = await api.get(`/predictions/stocks/${id}/reanalysis/result`);
       if (resultRes.data?.data) {
-        const pd = resultRes.data.data;
-        setPredictions([{
-          horizon: `단기 (${pd.predictionPeriod || 7}일)`,
+        const rawData = resultRes.data.data;
+        const list = Array.isArray(rawData) ? rawData : [rawData];
+        setPredictions(list.map((pd: any) => ({
+          horizon: pd.predictionPeriod === 20 ? "중장기 (20일)" : `단기 (${pd.predictionPeriod || 7}일)`,
           predictedReturnRate: Number(pd.predictedReturnRate || 0),
           predictedDirection: pd.predictedDirection || "UP",
-          opinion: `AI가 분석한 ${pd.predictionPeriod ? pd.predictionPeriod + '일' : '단기'} 방향성은 ${pd.predictedDirection === 'UP' ? '상승' : '하락'}입니다.`
-        }]);
+          opinion: `AI가 분석한 ${pd.predictionPeriod === 20 ? '20일 중장기' : (pd.predictionPeriod ? pd.predictionPeriod + '일' : '단기')} 방향성은 ${pd.predictedDirection === 'UP' ? '상승' : '하락'}입니다.`
+        })));
         alert("최신 시장 및 감성 데이터를 반영하여 AI 재분석이 완료되었습니다.");
       } else {
         alert("재분석 요청은 완료되었으나 결과를 불러오지 못했습니다.");
@@ -281,8 +283,8 @@ function StockDetailPage() {
                   contentStyle={{ background: "#1e293b", border: "none", borderRadius: "12px", color: "#fff" }}
                   itemStyle={{ color: color, fontWeight: 900 }}
                   labelStyle={{ color: "var(--text-soft)" }}
-                  formatter={(value: number, name: string) => [
-                    name === "volume" ? value.toLocaleString() : value.toLocaleString() + "원",
+                  formatter={(value: any, name: any) => [
+                    name === "volume" ? Number(value || 0).toLocaleString() : Number(value || 0).toLocaleString() + "원",
                     name === "volume" ? "거래량" : "종가"
                   ]}
                 />

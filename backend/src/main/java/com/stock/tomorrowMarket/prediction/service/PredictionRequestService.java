@@ -24,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -58,7 +59,7 @@ public class PredictionRequestService {
             return PredictionRequestResponseDto.from(requestRepository.save(cachedRequest));
         }
 
-        // 2. 캐시가 없으면 새로운 PENDING 요청 생성 (실제로는 비동기 처리 권장되나 현재는 동기 모의 처리)
+        // 2. 캐시가 없으면 새로운 PENDING 요청 생성
         PredictionRequest newRequest = PredictionRequest.builder()
                 .user(user)
                 .stock(stock)
@@ -67,22 +68,25 @@ public class PredictionRequestService {
         requestRepository.save(newRequest);
 
         try {
-            // 3. PredictionRun 생성 (ON_DEMAND 용)
+            // 3. PredictionRun 생성 (ON_DEMAND 용 - 단기 7일, 중장기 20일 총 2건 기대)
             PredictionRun predictionRun = PredictionRun.builder()
                     .runType("ON_DEMAND")
                     .scheduledBaseDate(LocalDate.now())
                     .totalStockCount(1)
-                    .expectedResultCount(1)
+                    .expectedResultCount(2)
                     .build();
             predictionRun.startRun();
             predictionRunRepository.save(predictionRun);
 
-            // 4. AI 모델 서버 호출 (Mock)
-            Prediction generatedPrediction = aiPredictionClient.requestPrediction(stock, "ON_DEMAND", predictionRun);
-            predictionRepository.save(generatedPrediction);
+            // 4. AI 모델 서버 호출 (단기 및 중장기 2건 분리 생성)
+            List<Prediction> generatedPredictions = aiPredictionClient.requestPredictions(stock, "ON_DEMAND", predictionRun);
+            if (generatedPredictions == null || generatedPredictions.isEmpty()) {
+                throw new RuntimeException("AI 서버로부터 예측 결과를 받지 못했습니다.");
+            }
+            predictionRepository.saveAll(generatedPredictions);
 
             // 5. PredictionRun 완료 처리
-            predictionRun.finishRun("SUCCESS", 1, 0, null);
+            predictionRun.finishRun("SUCCESS", generatedPredictions.size(), 0, null);
 
             // 6. 요청 상태 완료 업데이트
             newRequest.updateStatus(RequestStatus.COMPLETED, ResultSource.NEW_MODEL_RUN, predictionRun);
@@ -102,14 +106,18 @@ public class PredictionRequestService {
         return PredictionRequestResponseDto.from(request);
     }
 
-    // F-006: 재분석 결과 반환
+    // F-006: 재분석 결과 반환 (단기 7일, 중장기 20일 최신 예측 세트 반환)
     @Transactional(readOnly = true)
-    public PredictionResponseDto getReanalysisResult(Long stockId) {
-        // ON_DEMAND 예측 중 가장 최신 것 반환
+    public List<PredictionResponseDto> getReanalysisResult(Long stockId) {
         List<Prediction> onDemandPredictions = predictionRepository.findByStock_StockIdAndPredictionSourceOrderByBaseDatetimeDesc(stockId, "ON_DEMAND");
         if (onDemandPredictions.isEmpty()) {
             throw new CustomException(ErrorCode.PREDICTION_NOT_FOUND);
         }
-        return PredictionResponseDto.from(onDemandPredictions.get(0));
+        LocalDateTime latestTime = onDemandPredictions.get(0).getBaseDatetime();
+        return onDemandPredictions.stream()
+                .filter(p -> p.getBaseDatetime() != null && latestTime != null 
+                        && Math.abs(java.time.Duration.between(p.getBaseDatetime(), latestTime).toSeconds()) < 30)
+                .map(PredictionResponseDto::from)
+                .collect(Collectors.toList());
     }
 }

@@ -3,6 +3,9 @@ package com.stock.tomorrowMarket.prediction.client;
 import com.stock.tomorrowMarket.prediction.entity.Prediction;
 import com.stock.tomorrowMarket.prediction.entity.PredictionRun;
 import com.stock.tomorrowMarket.stock.entity.Stock;
+import com.stock.tomorrowMarket.stock.entity.StockHistory;
+import com.stock.tomorrowMarket.stock.repository.StockHistoryRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
@@ -14,6 +17,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -30,9 +34,31 @@ public class AiPredictionClient {
     private String aiServiceUrl;
 
     private final RestTemplate restTemplate;
+    private final StockHistoryRepository stockHistoryRepository;
 
     public AiPredictionClient(org.springframework.boot.web.client.RestTemplateBuilder builder) {
+        this(builder, null);
+    }
+
+    @Autowired
+    public AiPredictionClient(org.springframework.boot.web.client.RestTemplateBuilder builder,
+                              @Autowired(required = false) StockHistoryRepository stockHistoryRepository) {
         this.restTemplate = builder.build();
+        this.stockHistoryRepository = stockHistoryRepository;
+    }
+
+    public static String mapSectorToEnglish(String sectorName) {
+        if (sectorName == null) return "ITAndSemiconductor";
+        if (sectorName.contains("반도체") || sectorName.contains("IT")) return "ITAndSemiconductor";
+        if (sectorName.contains("커뮤니케이션")) return "Communication";
+        if (sectorName.contains("소재")) return "Materials";
+        if (sectorName.contains("헬스케어") || sectorName.contains("바이오")) return "Healthcare";
+        if (sectorName.contains("금융")) return "Financial";
+        if (sectorName.contains("산업재")) return "Industrial";
+        if (sectorName.contains("에너지") || sectorName.contains("유틸리티")) return "Energy";
+        if (sectorName.contains("항공") || sectorName.contains("해양") || sectorName.contains("해운")) return "Aviation";
+        if (sectorName.contains("소비재")) return "Consumer";
+        return "ITAndSemiconductor";
     }
 
     public List<Prediction> requestBatchPredictions(List<Stock> stocks, String runType, PredictionRun predictionRun) {
@@ -45,9 +71,8 @@ public class AiPredictionClient {
                 .map(s -> {
                     Map<String, String> m = new HashMap<>();
                     m.put("symbol", s.getStockCode());
-                    // Assuming Stock entity has a sector/industry field, fallback to "common" or
-                    // similar if not
-                    m.put("industry", s.getSector() != null ? s.getSector().getName() : "ITAndSemiconductor");
+                    String rawSector = s.getSector() != null ? s.getSector().getName() : null;
+                    m.put("industry", mapSectorToEnglish(rawSector));
                     return m;
                 }).collect(Collectors.toList());
 
@@ -56,8 +81,7 @@ public class AiPredictionClient {
                 : List.of(runType.toUpperCase());
 
         Map<String, Object> requestBody = new HashMap<>();
-        requestBody.put("base_date", LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)); // or
-                                                                                                // predictionRun.getScheduledBaseDate()
+        requestBody.put("base_date", LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE));
         requestBody.put("target_symbols", targetSymbols);
         requestBody.put("horizons", horizons);
 
@@ -83,19 +107,54 @@ public class AiPredictionClient {
                 Stock targetStock = stocks.stream().filter(s -> s.getStockCode().equals(symbol)).findFirst()
                         .orElse(null);
                 if (targetStock != null) {
+                    BigDecimal basePrice = BigDecimal.ZERO;
+                    if (stockHistoryRepository != null) {
+                        basePrice = stockHistoryRepository.findFirstByStockOrderByHistoryDateDesc(targetStock)
+                                .map(StockHistory::getClosingPrice)
+                                .orElse(BigDecimal.ZERO);
+                    }
+
+                    BigDecimal predPrice;
+                    BigDecimal returnRate;
+                    if (val != null && val > -1.0 && val < 1.0) {
+                        // val is return ratio (e.g. 0.035 -> 3.5%)
+                        returnRate = BigDecimal.valueOf(val * 100).setScale(2, RoundingMode.HALF_UP);
+                        if (basePrice.compareTo(BigDecimal.ZERO) > 0) {
+                            predPrice = basePrice.multiply(BigDecimal.ONE.add(BigDecimal.valueOf(val))).setScale(2, RoundingMode.HALF_UP);
+                        } else {
+                            predPrice = BigDecimal.valueOf(val).setScale(2, RoundingMode.HALF_UP);
+                        }
+                    } else if (val != null) {
+                        // val is absolute price
+                        predPrice = BigDecimal.valueOf(val).setScale(2, RoundingMode.HALF_UP);
+                        if (basePrice.compareTo(BigDecimal.ZERO) > 0) {
+                            returnRate = predPrice.subtract(basePrice)
+                                    .divide(basePrice, 4, RoundingMode.HALF_UP)
+                                    .multiply(BigDecimal.valueOf(100))
+                                    .setScale(2, RoundingMode.HALF_UP);
+                        } else {
+                            returnRate = BigDecimal.valueOf(val).setScale(2, RoundingMode.HALF_UP);
+                        }
+                    } else {
+                        predPrice = BigDecimal.ZERO;
+                        returnRate = BigDecimal.ZERO;
+                    }
+
+                    String direction = returnRate.compareTo(BigDecimal.ZERO) >= 0 ? "UP" : "DOWN";
+
                     predictions.add(Prediction.builder()
                             .stock(targetStock)
                             .predictionRun(predictionRun)
-                            .predictionPrice(BigDecimal.valueOf(val))
+                            .predictionPrice(predPrice)
                             .targetDate(LocalDate.parse(targetDateStr))
                             .predictionSource("ON_DEMAND".equalsIgnoreCase(runType) ? "ON_DEMAND" : "SCHEDULED_WEEKLY")
                             .modelName("TFT-LightGBM")
-                            .predictionPeriod("LONG".equals(horizon) ? 20 : 7)
+                            .predictionPeriod("LONG".equalsIgnoreCase(horizon) ? 20 : 5)
                             .baseDate(LocalDate.now())
                             .baseDatetime(LocalDateTime.now())
-                            .basePrice(BigDecimal.ZERO) // or fetch current base price
-                            .predictedReturnRate(BigDecimal.ZERO) // calculate if needed
-                            .predictedDirection(val > 0 ? "UP" : "DOWN")
+                            .basePrice(basePrice)
+                            .predictedReturnRate(returnRate)
+                            .predictedDirection(direction)
                             .build());
                 }
             }
@@ -106,8 +165,12 @@ public class AiPredictionClient {
         return predictions;
     }
 
+    public List<Prediction> requestPredictions(Stock stock, String runType, PredictionRun predictionRun) {
+        return requestBatchPredictions(List.of(stock), runType, predictionRun);
+    }
+
     public Prediction requestPrediction(Stock stock, String runType, PredictionRun predictionRun) {
-        List<Prediction> preds = requestBatchPredictions(List.of(stock), runType, predictionRun);
+        List<Prediction> preds = requestPredictions(stock, runType, predictionRun);
         if (preds != null && !preds.isEmpty()) {
             return preds.get(0);
         }

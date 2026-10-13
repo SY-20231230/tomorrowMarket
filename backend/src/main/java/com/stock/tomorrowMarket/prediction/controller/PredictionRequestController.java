@@ -9,6 +9,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/predictions")
 @RequiredArgsConstructor
@@ -35,9 +37,9 @@ public class PredictionRequestController {
 
     // F-006: 재분석 결과 반환
     @GetMapping("/stocks/{stockId}/reanalysis/result")
-    public ApiResponse<PredictionResponseDto> getReanalysisResult(
+    public ApiResponse<List<PredictionResponseDto>> getReanalysisResult(
             @PathVariable("stockId") Long stockId) {
-        PredictionResponseDto response = requestService.getReanalysisResult(stockId);
+        List<PredictionResponseDto> response = requestService.getReanalysisResult(stockId);
         return ApiResponse.success(response);
     }
 }
