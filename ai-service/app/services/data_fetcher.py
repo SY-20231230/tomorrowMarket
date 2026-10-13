@@ -8,13 +8,20 @@ class DataFetcher:
     def get_stock_history(db: Session, symbol: str, start_date: datetime, end_date: datetime) -> pd.DataFrame:
         query = db.query(StockHistory).filter(
             StockHistory.stock_code == symbol,
-            StockHistory.base_date >= start_date,
-            StockHistory.base_date <= end_date
-        ).order_by(StockHistory.base_date.asc())
+            StockHistory.history_date >= start_date,
+            StockHistory.history_date <= end_date
+        ).order_by(StockHistory.history_date.asc())
         
         df = pd.read_sql(query.statement, db.bind)
         if not df.empty:
-            df.rename(columns={'base_date': 'Date', 'stock_code': 'symbol'}, inplace=True)
+            for date_col in ['history_date', 'HISTORY_DATE', 'base_date', 'BASE_DATE']:
+                if date_col in df.columns:
+                    df.rename(columns={date_col: 'Date'}, inplace=True)
+                    break
+            for sym_col in ['stock_code', 'STOCK_CODE']:
+                if sym_col in df.columns:
+                    df.rename(columns={sym_col: 'symbol'}, inplace=True)
+                    break
             df['Date'] = pd.to_datetime(df['Date'])
             df = df.set_index('Date')
         return df

@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 @Component
 public class AiPredictionClient {
 
-    @Value("${ai-service.url:http://localhost:8000}")
+    @Value("${ai.server.url:http://localhost:8000}")
     private String aiServiceUrl;
 
     private final RestTemplate restTemplate;
@@ -45,15 +45,19 @@ public class AiPredictionClient {
                 .map(s -> {
                     Map<String, String> m = new HashMap<>();
                     m.put("symbol", s.getStockCode());
-                    // Assuming Stock entity has a sector/industry field, fallback to "common" or similar if not
+                    // Assuming Stock entity has a sector/industry field, fallback to "common" or
+                    // similar if not
                     m.put("industry", s.getSector() != null ? s.getSector().getName() : "ITAndSemiconductor");
                     return m;
                 }).collect(Collectors.toList());
 
-        List<String> horizons = "ALL".equalsIgnoreCase(runType) ? List.of("SHORT", "LONG") : List.of(runType.toUpperCase());
+        List<String> horizons = ("ALL".equalsIgnoreCase(runType) || "ON_DEMAND".equalsIgnoreCase(runType))
+                ? List.of("SHORT", "LONG")
+                : List.of(runType.toUpperCase());
 
         Map<String, Object> requestBody = new HashMap<>();
-        requestBody.put("base_date", LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)); // or predictionRun.getScheduledBaseDate()
+        requestBody.put("base_date", LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)); // or
+                                                                                                // predictionRun.getScheduledBaseDate()
         requestBody.put("target_symbols", targetSymbols);
         requestBody.put("horizons", horizons);
 
@@ -63,8 +67,8 @@ public class AiPredictionClient {
                 url,
                 HttpMethod.POST,
                 requestEntity,
-                new ParameterizedTypeReference<Map<String, Object>>() {}
-        );
+                new ParameterizedTypeReference<Map<String, Object>>() {
+                });
 
         List<Prediction> predictions = new ArrayList<>();
         Map<String, Object> body = response.getBody();
@@ -76,14 +80,16 @@ public class AiPredictionClient {
                 Double val = (Double) p.get("predicted_value");
                 String horizon = (String) p.get("horizon");
 
-                Stock targetStock = stocks.stream().filter(s -> s.getStockCode().equals(symbol)).findFirst().orElse(null);
+                Stock targetStock = stocks.stream().filter(s -> s.getStockCode().equals(symbol)).findFirst()
+                        .orElse(null);
                 if (targetStock != null) {
                     predictions.add(Prediction.builder()
                             .stock(targetStock)
                             .predictionRun(predictionRun)
                             .predictionPrice(BigDecimal.valueOf(val))
                             .targetDate(LocalDate.parse(targetDateStr))
-                            .predictionSource("TFT-LightGBM")
+                            .predictionSource("ON_DEMAND".equalsIgnoreCase(runType) ? "ON_DEMAND" : "SCHEDULED_WEEKLY")
+                            .modelName("TFT-LightGBM")
                             .predictionPeriod("LONG".equals(horizon) ? 20 : 7)
                             .baseDate(LocalDate.now())
                             .baseDatetime(LocalDateTime.now())
