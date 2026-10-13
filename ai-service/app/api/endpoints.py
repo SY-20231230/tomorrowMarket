@@ -16,18 +16,31 @@ router = APIRouter()
 def health_check():
     loaded_lgb = len(registry.lightgbm_models)
     loaded_tft = len(registry.tft_models)
+    sentiment_loaded = registry.sentiment_model is not None
+    
+    expected_lgb = 18
+    expected_tft = 18
     
     status = "OK"
-    if loaded_lgb == 0:
-        status = "WARNING: No LightGBM models loaded"
+    warnings = []
+    if loaded_lgb < expected_lgb:
+        warnings.append(f"LightGBM: {loaded_lgb}/{expected_lgb}")
+    if loaded_tft < expected_tft:
+        warnings.append(f"TFT: {loaded_tft}/{expected_tft}")
+    if not sentiment_loaded:
+        warnings.append("Sentiment model not loaded")
+        
+    if warnings:
+        status = "WARNING: Incomplete models (" + ", ".join(warnings) + ")"
         
     return {
         "status": status,
         "models_loaded": {
-            "lightgbm": loaded_lgb,
-            "tft": loaded_tft,
-            "sentiment": registry.sentiment_model is not None
-        }
+            "lightgbm": f"{loaded_lgb}/{expected_lgb}",
+            "tft": f"{loaded_tft}/{expected_tft}",
+            "sentiment": sentiment_loaded
+        },
+        "errors": registry.loading_errors
     }
 
 @router.post("/sentiment/analyze", response_model=SentimentAnalyzeResponse)

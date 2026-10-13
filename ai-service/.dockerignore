@@ -24,6 +24,12 @@ coverage.xml
 .idea/
 .vscode/
 
-# Ignore models directory completely. We will mount it via volume to keep images lightweight.
-# If you decide to copy them inside the container, remove this line.
-models/
+# Keep models directory included in the Docker build context.
+# Only ignore unnecessary notebook/temporary files inside models:
+models/**/*.ipynb
+models/**/*.txt
+models/**/.gitkeep
+data/cache/*
+data/temp/*
+tests/
+.env
