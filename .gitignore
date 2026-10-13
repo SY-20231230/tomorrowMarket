@@ -9,6 +9,16 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# Python Virtual Environments #
+tovenv/
+venv/
+.venv/
+env/
+ENV/
+ai-service/tovenv/
+ai-service/venv/
+ai-service/.venv/
+
 *.properties
 !BackEnd/src/main/resources/application.properties
 !gradle-wrapper.properties
