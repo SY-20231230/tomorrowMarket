@@ -199,4 +199,23 @@ public class AiPredictionClient {
             System.err.println("[WEBHOOK] AI 서버 감성 분석 요청 에러 - 원인: " + e.getMessage());
         }
     }
+
+    public void triggerNewsCrawling() {
+        String url = aiServiceUrl + "/api/v1/crawl/news";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<Void> entity = new HttpEntity<>(headers);
+
+        try {
+            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
+            if (response.getStatusCode().is2xxSuccessful()) {
+                System.out.println("[SCHEDULED] AI 서버 뉴스 기사 자동 크롤링 트리거 성공 (응답: " + response.getBody() + ")");
+            } else {
+                System.err.println("[SCHEDULED] AI 서버 뉴스 크롤링 트리거 실패 - 응답 코드: " + response.getStatusCode());
+            }
+        } catch (Exception e) {
+            System.err.println("[SCHEDULED] AI 서버 뉴스 크롤링 트리거 요청 에러 - 원인: " + e.getMessage());
+        }
+    }
 }
