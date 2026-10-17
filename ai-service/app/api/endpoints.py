@@ -1,10 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from sqlalchemy.orm import Session
 from app.registry.model_registry import registry
 from app.db.session import get_db
 from app.schemas.sentiment import SentimentAnalyzeRequest, SentimentAnalyzeResponse
 from app.schemas.predict import BatchPredictRequest, BatchPredictResponse, PredictResultItem
 from app.services.sentiment_service import analyze_and_update_sentiment
+from app.services.news_crawler import run_crawler
 from app.services.data_fetcher import DataFetcher
 from app.services.feature_engineer import FeatureEngineer
 from app.services.inference_pipeline import InferencePipeline
@@ -101,5 +102,21 @@ def batch_predict(request: BatchPredictRequest, db: Session = Depends(get_db)):
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/crawl/news")
+def trigger_news_crawling(background_tasks: BackgroundTasks):
+    """
+    백엔드 스케줄러(또는 관리자 요청)를 받아 백그라운드에서 뉴스 크롤링을 비동기로 시작합니다.
+    크롤러 내부에서 수집 완료 시 백엔드 Webhook을 자동 호출하여 KoBERT 감성 분석을 연계합니다.
+    """
+    try:
+        background_tasks.add_task(run_crawler)
+        return {
+            "status": "STARTED",
+            "message": "News crawling background task started successfully."
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to start crawling: {str(e)}")
 
 
