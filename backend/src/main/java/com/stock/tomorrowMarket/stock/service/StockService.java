@@ -51,6 +51,10 @@ public class StockService {
         StockHistory latestHistory = stockHistoryRepository.findFirstByStockOrderByHistoryDateDesc(stock)
                 .orElse(null);
 
+        if (userId != null) {
+            searchLogService.logStockSearch(userId, stock);
+        }
+
         return StockDetailResponse.of(stock, latestHistory);
     }
 

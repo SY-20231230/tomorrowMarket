@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   PieChart, Pie, Cell, ResponsiveContainer,
-  LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid
+  AreaChart, Area, BarChart, Bar,
+  XAxis, YAxis, Tooltip, CartesianGrid
 } from "recharts";
 import api from "../api/axios";
 import "./NewsPage.css";
@@ -35,6 +36,7 @@ function NewsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [sortOrder, setSortOrder] = useState("LATEST");
+  const [trendChartType, setTrendChartType] = useState<"area" | "bar">("area");
   const itemsPerPage = 4;
 
   const [articles, setArticles] = useState<any[]>([]);
@@ -184,21 +186,88 @@ function NewsPage() {
 
         {/* Card 2: Trend Chart */}
         <div className="stats-card">
-          <div className="card-title">최근 30일 시장 감성 트렌드</div>
+          <div className="card-title" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span>최근 30일 시장 감성 트렌드</span>
+            <div style={{ display: "flex", gap: "6px" }}>
+              <button
+                type="button"
+                onClick={() => setTrendChartType("area")}
+                style={{
+                  padding: "2px 8px",
+                  borderRadius: "6px",
+                  fontSize: "11px",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  border: trendChartType === "area" ? "1px solid #38bdf8" : "1px solid rgba(255,255,255,0.1)",
+                  background: trendChartType === "area" ? "rgba(56, 189, 248, 0.2)" : "rgba(255,255,255,0.05)",
+                  color: trendChartType === "area" ? "#38bdf8" : "#94a3b8",
+                  transition: "all 0.2s"
+                }}
+              >
+                꺾은선
+              </button>
+              <button
+                type="button"
+                onClick={() => setTrendChartType("bar")}
+                style={{
+                  padding: "2px 8px",
+                  borderRadius: "6px",
+                  fontSize: "11px",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  border: trendChartType === "bar" ? "1px solid #38bdf8" : "1px solid rgba(255,255,255,0.1)",
+                  background: trendChartType === "bar" ? "rgba(56, 189, 248, 0.2)" : "rgba(255,255,255,0.05)",
+                  color: trendChartType === "bar" ? "#38bdf8" : "#94a3b8",
+                  transition: "all 0.2s"
+                }}
+              >
+                막대
+              </button>
+            </div>
+          </div>
           <div style={{ width: "100%", height: "130px", marginTop: "10px" }}>
             {trendChartData.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={trendChartData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-                  <XAxis dataKey="dateLabel" stroke="var(--text-soft)" fontSize={11} tickLine={false} axisLine={false} />
-                  <YAxis hide domain={[0, 100]} />
-                  <Tooltip 
-                    contentStyle={{ background: "#1e293b", border: "none", borderRadius: "8px", color: "#fff" }}
-                    itemStyle={{ color: "var(--cyan)" }}
-                    formatter={(value: number) => [`${value.toFixed(1)}점`, "평균 감성"]}
-                  />
-                  <Line type="monotone" dataKey="score" stroke="var(--cyan)" strokeWidth={3} dot={false} activeDot={{ r: 6 }} />
-                </LineChart>
+                {trendChartType === "area" ? (
+                  <AreaChart data={trendChartData}>
+                    <defs>
+                      <linearGradient id="sentimentTrendGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#38bdf8" stopOpacity={0.4} />
+                        <stop offset="95%" stopColor="#38bdf8" stopOpacity={0.0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" vertical={false} />
+                    <XAxis dataKey="dateLabel" stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} />
+                    <YAxis hide domain={[0, 100]} />
+                    <Tooltip 
+                      contentStyle={{ background: "#1e293b", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", color: "#fff" }}
+                      itemStyle={{ color: "#38bdf8" }}
+                      formatter={(value: any) => [`${Number(value || 0).toFixed(1)}점`, "평균 감성"]}
+                    />
+                    <Area 
+                      type="monotone" 
+                      dataKey="score" 
+                      stroke="#38bdf8" 
+                      strokeWidth={3} 
+                      fillOpacity={1} 
+                      fill="url(#sentimentTrendGrad)" 
+                      dot={{ r: 3, fill: "#38bdf8", stroke: "#0f172a", strokeWidth: 1 }} 
+                      activeDot={{ r: 6, fill: "#38bdf8", stroke: "#fff", strokeWidth: 2 }} 
+                    />
+                  </AreaChart>
+                ) : (
+                  <BarChart data={trendChartData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" vertical={false} />
+                    <XAxis dataKey="dateLabel" stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} />
+                    <YAxis hide domain={[0, 100]} />
+                    <Tooltip 
+                      contentStyle={{ background: "#1e293b", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", color: "#fff" }}
+                      itemStyle={{ color: "#38bdf8" }}
+                      formatter={(value: any) => [`${Number(value || 0).toFixed(1)}점`, "평균 감성"]}
+                    />
+                    <Bar dataKey="score" fill="#38bdf8" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                )}
               </ResponsiveContainer>
             ) : (
               <div className="premium-empty-state">

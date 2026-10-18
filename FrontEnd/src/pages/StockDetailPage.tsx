@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { 
-  ComposedChart, Area, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend 
+import {
+  ComposedChart, Area, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
 } from "recharts";
 import SectionTitle from "../components/common/SectionTitle";
 import NewsCard from "../components/news/NewsCard";
@@ -35,7 +35,7 @@ function StockDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isReanalyzing, setIsReanalyzing] = useState(false);
   const [pastRange, setPastRange] = useState("1개월");
-  
+
   const [stock, setStock] = useState<StockDetail | null>(null);
   const [history, setHistory] = useState<StockHistory[]>([]);
   const [predictions, setPredictions] = useState<any[]>([]);
@@ -50,8 +50,10 @@ function StockDetailPage() {
         const [detailRes, historyRes, predictionRes, articleRes, watchlistRes] = await Promise.all([
           api.get(`/stocks/${id}`),
           api.get(`/stocks/${id}/history`).catch(() => ({ data: { data: [] } })),
-          api.get(`/predictions/stocks/${id}/latest`).catch(() => 
-            api.get(`/predictions/stocks/${id}/reanalysis/result`).catch(() => null)
+          api.get(`/predictions/stocks/${id}/history?size=10`).catch(() =>
+            api.get(`/predictions/stocks/${id}/latest`).catch(() =>
+              api.get(`/predictions/stocks/${id}/reanalysis/result`).catch(() => null)
+            )
           ),
           api.get(`/articles/stocks/${id}?size=3`).catch(() => null),
           api.get(`/watchlists`).catch(() => ({ data: { data: [] } }))
@@ -61,11 +63,11 @@ function StockDetailPage() {
           const watchlists = watchlistRes.data.data;
           setIsFavorite(watchlists.some((w: any) => w.stockId === Number(id)));
         }
-        
+
         if (detailRes.data?.data) {
           const fetchedStock = detailRes.data.data;
           setStock(fetchedStock);
-          
+
           try {
             const stored = localStorage.getItem("recentViews");
             let views = stored ? JSON.parse(stored) : [];
@@ -78,7 +80,7 @@ function StockDetailPage() {
             });
             if (views.length > 10) views = views.slice(0, 10);
             localStorage.setItem("recentViews", JSON.stringify(views));
-          } catch(e) {
+          } catch (e) {
             console.error("Failed to save recent view", e);
           }
         }
@@ -95,13 +97,27 @@ function StockDetailPage() {
         }
         if (predictionRes?.data?.data) {
           const rawData = predictionRes.data.data;
-          const list = Array.isArray(rawData) ? rawData : [rawData];
-          setPredictions(list.map((pd: any) => ({
-            horizon: pd.predictionPeriod === 20 ? "중장기 (20일)" : `단기 (${pd.predictionPeriod || 7}일)`,
-            predictedReturnRate: Number(pd.predictedReturnRate || 0),
-            predictedDirection: pd.predictedDirection || "UP",
-            opinion: `AI가 분석한 ${pd.predictionPeriod === 20 ? '20일 중장기' : (pd.predictionPeriod ? pd.predictionPeriod + '일' : '단기')} 방향성은 ${pd.predictedDirection === 'UP' ? '상승' : '하락'}입니다.`
-          })));
+          const rawList = Array.isArray(rawData)
+            ? rawData
+            : (Array.isArray(rawData.content) ? rawData.content : [rawData]);
+
+          // Priority key periods: 3일, 5일, 20일
+          const filtered = rawList.filter((pd: any) => [3, 5, 20].includes(pd.predictionPeriod));
+          const list = filtered.length > 0 ? filtered : rawList;
+
+          setPredictions(list.map((pd: any) => {
+            let horizonLabel = `단기 (${pd.predictionPeriod || 5}일)`;
+            if (pd.predictionPeriod === 3) horizonLabel = "단기 (3일)";
+            else if (pd.predictionPeriod === 5) horizonLabel = "단기 (5일)";
+            else if (pd.predictionPeriod === 20) horizonLabel = "중장기 (20일)";
+
+            return {
+              horizon: horizonLabel,
+              predictedReturnRate: Number(pd.predictedReturnRate || 0),
+              predictedDirection: pd.predictedDirection || "UP",
+              opinion: `AI가 분석한 ${horizonLabel} 방향성은 ${pd.predictedDirection === 'UP' ? '상승' : '하락'} (${pd.predictedReturnRate > 0 ? '+' : ''}${Number(pd.predictedReturnRate || 0).toFixed(1)}%)입니다.`
+            };
+          }));
         }
         if (articleRes?.data?.data?.content) {
           setArticles(articleRes.data.data.content);
@@ -113,7 +129,7 @@ function StockDetailPage() {
         setIsLoading(false);
       }
     };
-    
+
     if (id) {
       fetchStockData();
     }
@@ -129,13 +145,23 @@ function StockDetailPage() {
       const resultRes = await api.get(`/predictions/stocks/${id}/reanalysis/result`);
       if (resultRes.data?.data) {
         const rawData = resultRes.data.data;
-        const list = Array.isArray(rawData) ? rawData : [rawData];
-        setPredictions(list.map((pd: any) => ({
-          horizon: pd.predictionPeriod === 20 ? "중장기 (20일)" : `단기 (${pd.predictionPeriod || 7}일)`,
-          predictedReturnRate: Number(pd.predictedReturnRate || 0),
-          predictedDirection: pd.predictedDirection || "UP",
-          opinion: `AI가 분석한 ${pd.predictionPeriod === 20 ? '20일 중장기' : (pd.predictionPeriod ? pd.predictionPeriod + '일' : '단기')} 방향성은 ${pd.predictedDirection === 'UP' ? '상승' : '하락'}입니다.`
-        })));
+        const rawList = Array.isArray(rawData)
+          ? rawData
+          : (Array.isArray(rawData.content) ? rawData.content : [rawData]);
+
+        setPredictions(rawList.map((pd: any) => {
+          let horizonLabel = `단기 (${pd.predictionPeriod || 7}일)`;
+          if (pd.predictionPeriod === 3) horizonLabel = "수요일 (3일)";
+          else if (pd.predictionPeriod === 5) horizonLabel = "단기 (5일)";
+          else if (pd.predictionPeriod === 20) horizonLabel = "중장기 (20일)";
+
+          return {
+            horizon: horizonLabel,
+            predictedReturnRate: Number(pd.predictedReturnRate || 0),
+            predictedDirection: pd.predictedDirection || "UP",
+            opinion: `AI가 분석한 ${horizonLabel} 방향성은 ${pd.predictedDirection === 'UP' ? '상승' : '하락'} (${pd.predictedReturnRate > 0 ? '+' : ''}${Number(pd.predictedReturnRate || 0).toFixed(1)}%)입니다.`
+          };
+        }));
         alert("최신 시장 및 감성 데이터를 반영하여 AI 재분석이 완료되었습니다.");
       } else {
         alert("재분석 요청은 완료되었으나 결과를 불러오지 못했습니다.");
@@ -166,7 +192,7 @@ function StockDetailPage() {
   // Filter chart data based on pastRange
   const filteredHistory = React.useMemo(() => {
     if (!history || history.length === 0) return [];
-    
+
     const now = new Date();
     let daysToSubtract = 30;
     if (pastRange === "1주일") daysToSubtract = 7;
@@ -176,7 +202,7 @@ function StockDetailPage() {
 
     const cutoffDate = new Date();
     cutoffDate.setDate(now.getDate() - daysToSubtract);
-    
+
     return history.filter(h => new Date(h.date) >= cutoffDate);
   }, [history, pastRange]);
 
@@ -186,7 +212,7 @@ function StockDetailPage() {
       <div style={{ padding: "100px", textAlign: "center", color: "#ef4444" }}>
         <h2>오류 발생</h2>
         <p>{errorMsg}</p>
-        <button 
+        <button
           onClick={() => navigate("/stocks")}
           style={{ marginTop: "20px", padding: "10px 20px", background: "rgba(255,255,255,0.1)", border: "none", color: "#fff", borderRadius: "8px", cursor: "pointer" }}
         >
@@ -211,8 +237,8 @@ function StockDetailPage() {
 
   return (
     <div className="stock-detail-page" style={{ paddingBottom: "100px" }}>
-      <button 
-        onClick={() => navigate("/stocks")} 
+      <button
+        onClick={() => navigate("/stocks")}
         style={{ background: "transparent", border: "none", color: "var(--text-soft)", fontSize: "16px", cursor: "pointer", marginBottom: "20px", display: "flex", alignItems: "center", gap: "8px" }}
       >
         ← 목록으로 돌아가기
@@ -245,7 +271,7 @@ function StockDetailPage() {
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "30px", marginTop: "30px" }}>
-        
+
         {/* Section 1: Chart */}
         <div className="result-display-area" style={{ margin: 0 }}>
           <div className="chart-header">
@@ -254,7 +280,7 @@ function StockDetailPage() {
             </div>
             <div className="time-range-tabs">
               {["1주일", "1개월", "3개월", "6개월"].map(range => (
-                <button 
+                <button
                   key={range}
                   className={`range-tab ${pastRange === range ? "active" : ""}`}
                   onClick={() => setPastRange(range)}
@@ -269,8 +295,8 @@ function StockDetailPage() {
               <ComposedChart data={filteredHistory}>
                 <defs>
                   <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor={color} stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor={color} stopOpacity={0}/>
+                    <stop offset="5%" stopColor={color} stopOpacity={0.3} />
+                    <stop offset="95%" stopColor={color} stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.05)" vertical={false} />
@@ -278,8 +304,8 @@ function StockDetailPage() {
                 <YAxis yAxisId="price" orientation="left" hide={false} domain={[(dataMin: number) => Math.floor(dataMin * 0.95), (dataMax: number) => Math.ceil(dataMax * 1.05)]} tickFormatter={(v) => v.toLocaleString()} stroke="var(--text-soft)" fontSize={11} width={80} />
                 <YAxis yAxisId="volume" orientation="right" hide={false} domain={[0, 'auto']} tickFormatter={(v) => v.toLocaleString()} stroke="rgba(255,255,255,0.2)" fontSize={11} width={80} />
                 <Legend verticalAlign="top" height={36} formatter={(value) => <span style={{ color: "var(--text-soft)" }}>{value === "closingPrice" ? "종가 (Price)" : "거래량 (Volume)"}</span>} />
-                
-                <Tooltip 
+
+                <Tooltip
                   contentStyle={{ background: "#1e293b", border: "none", borderRadius: "12px", color: "#fff" }}
                   itemStyle={{ color: color, fontWeight: 900 }}
                   labelStyle={{ color: "var(--text-soft)" }}
@@ -288,19 +314,19 @@ function StockDetailPage() {
                     name === "volume" ? "거래량" : "종가"
                   ]}
                 />
-                
+
                 {/* 거래량 Bar */}
                 <Bar yAxisId="volume" dataKey="volume" fill="rgba(255, 255, 255, 0.1)" barSize={20} />
-                
+
                 {/* 종가 Area */}
-                <Area 
+                <Area
                   yAxisId="price"
-                  type="monotone" 
-                  dataKey="closingPrice" 
-                  stroke={color} 
+                  type="monotone"
+                  dataKey="closingPrice"
+                  stroke={color}
                   strokeWidth={3}
-                  fillOpacity={1} 
-                  fill="url(#colorPrice)" 
+                  fillOpacity={1}
+                  fill="url(#colorPrice)"
                   dot={{ r: 0 }}
                 />
               </ComposedChart>
@@ -310,10 +336,10 @@ function StockDetailPage() {
 
         {/* Section 2: AI Dashboard */}
         <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-          <PredictionPanel 
+          <PredictionPanel
             predictions={predictions.length > 0 ? predictions : undefined}
-            onReanalyze={handleReanalyze} 
-            isReanalyzing={isReanalyzing} 
+            onReanalyze={handleReanalyze}
+            isReanalyzing={isReanalyzing}
           />
         </div>
 

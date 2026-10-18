@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import SectionTitle from "../components/common/SectionTitle";
-// import api from "../api/axios";
+import api from "../api/axios";
 import "./HomePage.css";
 
 // --- Types ---
@@ -47,84 +47,72 @@ function HomePage() {
   const [isAuthError, setIsAuthError] = useState(false); // eslint-disable-line @typescript-eslint/no-unused-vars
 
   useEffect(() => {
-    // 1. 오늘의 시장 분위기 & 최신 기사 (Mock Data)
-    setTimeout(() => {
-      setSentimentStats({
-        pieChart: { positive: 145, neutral: 32, negative: 48 },
-        trendData: [],
-        relatedKeywords: ["금리인상", "반도체", "AI", "실적발표", "배당금"]
-      });
-      setLatestArticles([
-        { id: 1, title: "코스피, 기관 매수세에 1%대 상승 마감", summary: "외국인과 기관의 쌍끌이 매수세가 이어지며 코스피 지수가 2700선을 회복했습니다.", sentimentLabel: "POSITIVE", registrationDate: "2026-09-16 10:30" },
-        { id: 2, title: "미 연준 금리 인상 가능성에 아시아 증시 관망세", summary: "파월 의장의 매파적 발언 여파로 아시아 주요 증시가 일제히 숨고르기에 들어갔습니다.", sentimentLabel: "NEGATIVE", registrationDate: "2026-09-16 09:45" },
-        { id: 3, title: "반도체 슈퍼사이클 재진입... 삼성전자 강세", summary: "글로벌 AI 수요 폭증으로 인한 메모리 단가 상승 기대감이 주가에 반영되고 있습니다.", sentimentLabel: "POSITIVE", registrationDate: "2026-09-16 09:12" },
-        { id: 4, title: "환율 1,350원 돌파, 수출 기업 수혜 기대감", summary: "원달러 환율이 연고점을 경신하며 자동차 등 수출 위주 기업들의 실적 개선이 전망됩니다.", sentimentLabel: "POSITIVE", registrationDate: "2026-09-16 08:50" },
-        { id: 5, title: "AI 열풍 지속, 관련주 동반 신고가 랠리", summary: "소프트웨어 및 반도체 장비 관련 종목들이 연일 52주 신고가를 갈아치우고 있습니다.", sentimentLabel: "POSITIVE", registrationDate: "2026-09-16 08:20" }
-      ]);
-    }, 500);
-
-    // 2. 실시간 인기 검색 종목 (최근 주가 반영 Mock Data)
-    setTimeout(() => {
-      setTopSearchedStocks([
-        { stockId: 1, stockName: "삼성전자", price: 78900, changeRate: 2.31 },
-        { stockId: 2, stockName: "SK하이닉스", price: 182500, changeRate: 3.18 },
-        { stockId: 3, stockName: "NAVER", price: 192400, changeRate: 1.05 },
-        { stockId: 4, stockName: "카카오", price: 42300, changeRate: -1.52 },
-        { stockId: 5, stockName: "현대차", price: 245000, changeRate: 2.10 }
-      ]);
-    }, 600);
-
-    // 3. 나의 관심 종목 (Mock Data)
-    setTimeout(() => {
-      setWatchlistPredictions([
-        { stockId: 1, stockName: "삼성전자", stockCode: "005930", predictedDirection: "UP", predictedReturnRate: 3.5, targetDate: "2026-09-23" },
-        { stockId: 4, stockName: "카카오", stockCode: "035720", predictedDirection: "DOWN", predictedReturnRate: -1.2, targetDate: "2026-09-23" },
-        { stockId: 5, stockName: "현대차", stockCode: "005380", predictedDirection: "FLAT", predictedReturnRate: 0.1, targetDate: "2026-09-23" }
-      ]);
-      setIsWatchlistLoading(false);
-    }, 800);
-
-    /* 실제 API 호출 코드 (임시 주석 처리)
     // 1-1. 오늘의 시장 분위기
     api.get('/articles/sentiment/statistics')
       .then(res => {
-        if (res.data.status === "SUCCESS") setSentimentStats(res.data.data);
-      }).catch(console.error);
+        if (res.data?.data) {
+          setSentimentStats(res.data.data);
+        }
+      })
+      .catch(console.error);
 
     // 1-2. 최신 기사 5개
     api.get('/articles?size=5&sort=LATEST')
       .then(res => {
-        if (res.data.status === "SUCCESS") setLatestArticles(res.data.data.content);
-      }).catch(console.error);
+        if (res.data?.data?.content) {
+          setLatestArticles(res.data.data.content.map((a: any) => ({
+            id: a.articleId,
+            title: a.title,
+            summary: a.summary,
+            sentimentLabel: a.sentimentLabel,
+            registrationDate: a.registrationDate
+          })));
+        }
+      })
+      .catch(console.error);
 
-    // 2. 실시간 인기 검색 종목 (+ 종가/등락률 병합)
+    // 2. 실시간 인기 검색 종목 (검색 로그 통계 조회 -> 없으면 상위 종목 목록 대체)
     const fetchTopStocks = async () => {
       const endTime = new Date().toISOString();
       const startTime = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
       try {
-        const topRes = await api.get(`/statistics/search-logs/top?startTime=${startTime}&endTime=${endTime}&limit=5`);
-        if (topRes.data.status === "SUCCESS") {
-          const topList = topRes.data.data;
-          const mergedList: TopStock[] = [];
-          for (const item of topList) {
-            try {
-              const detailRes = await api.get(`/stocks/${item.stockId}`);
-              if (detailRes.data.status === "SUCCESS") {
-                mergedList.push({
-                  stockId: item.stockId,
-                  stockName: item.stockName,
-                  price: detailRes.data.data.closingPrice,
-                  changeRate: detailRes.data.data.performance
-                });
-              }
-            } catch (err) {
-              // Ignore if stock detail fails
+        const topRes = await api.get(`/statistics/search-logs/top?startTime=${startTime}&endTime=${endTime}&limit=5`).catch(() => null);
+        const topList = topRes?.data?.data || [];
+        const mergedList: TopStock[] = [];
+
+        for (const item of topList) {
+          try {
+            const detailRes = await api.get(`/stocks/${item.stockId}`);
+            if (detailRes.data?.data) {
+              mergedList.push({
+                stockId: item.stockId,
+                stockName: item.stockName || detailRes.data.data.name,
+                price: detailRes.data.data.closingPrice,
+                changeRate: detailRes.data.data.performance
+              });
             }
+          } catch (err) {
+            // Ignore individual failure
           }
-          setTopSearchedStocks(mergedList);
         }
+
+        // 검색 기록이 부족할 경우 활성 종목 상위 5건으로 채움
+        if (mergedList.length === 0) {
+          const fallbackRes = await api.get('/stocks?page=0&size=5').catch(() => null);
+          const fallbackList = fallbackRes?.data?.data?.content || [];
+          for (const s of fallbackList) {
+            mergedList.push({
+              stockId: s.stockId,
+              stockName: s.name,
+              price: s.closingPrice,
+              changeRate: s.performance
+            });
+          }
+        }
+
+        setTopSearchedStocks(mergedList);
       } catch (err) {
-        console.error(err);
+        console.error("Failed to fetch top stocks:", err);
       }
     };
     fetchTopStocks();
@@ -132,8 +120,8 @@ function HomePage() {
     // 3. 나의 관심 종목
     const fetchWatchlistPredictions = async () => {
       try {
-        const watchRes = await api.get('/watchlists');
-        if (watchRes.data.status === "SUCCESS") {
+        const watchRes = await api.get('/watchlists').catch(() => null);
+        if (watchRes?.data?.data) {
           const watchlists = watchRes.data.data;
           if (watchlists.length === 0) {
             setWatchlistPredictions([]);
@@ -144,8 +132,8 @@ function HomePage() {
           const predictions: WatchlistPrediction[] = [];
           for (const item of watchlists) {
             try {
-              const predRes = await api.get(`/predictions/stocks/${item.stockId}/latest`);
-              if (predRes.data.status === "SUCCESS" && predRes.data.data) {
+              const predRes = await api.get(`/predictions/stocks/${item.stockId}/latest`).catch(() => null);
+              if (predRes?.data?.data) {
                 predictions.push({
                   stockId: item.stockId,
                   stockName: item.stockName,
@@ -166,7 +154,6 @@ function HomePage() {
       }
     };
     fetchWatchlistPredictions();
-    */
   }, []);
 
   // Helpers
@@ -196,6 +183,18 @@ function HomePage() {
     if (posPercent >= 40) return "긍정적";
     if (posPercent <= 20) return "부정적";
     return "중립적";
+  };
+
+  const formatArticleTime = (dateStr?: string) => {
+    if (!dateStr) return "";
+    if (dateStr.includes(" ")) {
+      return dateStr.split(" ")[1] || dateStr;
+    }
+    if (dateStr.includes("T")) {
+      const parts = dateStr.split("T")[1];
+      return parts ? parts.substring(0, 5) : dateStr;
+    }
+    return dateStr;
   };
 
   return (
@@ -301,7 +300,7 @@ function HomePage() {
                       </span>
                     )}
                     <span style={{ color: "#64748b", fontSize: "13px", minWidth: "40px", textAlign: "right", fontWeight: "500" }}>
-                      {article.registrationDate.split(" ")[1]}
+                      {formatArticleTime(article.registrationDate)}
                     </span>
                   </div>
                 </div>
